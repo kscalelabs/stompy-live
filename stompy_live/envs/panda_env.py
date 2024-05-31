@@ -87,7 +87,7 @@ class PandaPushCubeEnv(PushCubeEnv):
         self.builder = get_actor_builder(
             self.scene,
             id=f"ycb:{model_id}",
-            scale=2,
+            scale=2.5,
         )
         self.bowl = self.builder.build(name="bowl")
 
@@ -131,11 +131,11 @@ class PandaPushCubeEnv(PushCubeEnv):
             sphere_xyz[..., :2] = self.sphere_radius
             # self.sphere.set_pose(sphere_pose)
 
-            bowl_xyz = sphere_xyz + torch.tensor([0, 0.15, 0])
+            bowl_xyz = sphere_xyz + torch.tensor([0, 0.25, 0])
             bowl_pose = Pose.create_from_pq(p=bowl_xyz, q=q)
             self.bowl.set_pose(bowl_pose)
 
-            bowl2_xyz = sphere_xyz + torch.tensor([0, -0.15, 0])
+            bowl2_xyz = sphere_xyz + torch.tensor([0, -0.25, 0])
             bowl2_pose = Pose.create_from_pq(p=bowl2_xyz, q=q)
             self.bowl2.set_pose(bowl2_pose)
 
