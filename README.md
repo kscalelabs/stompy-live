@@ -10,4 +10,10 @@ git clone https://github.com/kscalelabs/stompy-live
 && conda activate stompylive
 && pip install -e .
 ```
+Tests:
 
+Test Maniskill:
+```bash
+python -m tests.maniskilltest
+python -m tests.parallelmaniskilltest
+```
