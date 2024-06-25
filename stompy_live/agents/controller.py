@@ -1,4 +1,4 @@
-"""Defines a controller which lets you control an agent with your keyboard."""
+"""Custom controller class for stompy."""
 
 from dataclasses import dataclass
 from typing import Sequence

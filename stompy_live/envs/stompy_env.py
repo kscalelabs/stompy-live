@@ -1,31 +1,9 @@
-"""Code for a minimal environment/task with just a robot being loaded. We recommend copying this template and modifying as you need.
-
-At a high-level, ManiSkill tasks can minimally be defined by what agents/actors are
-loaded, how agents/actors are randomly initialized during env resets, how goals are randomized and parameterized in observations, and success conditions
-
-Environment reset is comprised of running two functions, `self._reconfigure` and `self.initialize_episode`, which is auto
-run by ManiSkill. As a user, you can override a number of functions that affect reconfiguration and episode initialization.
-
-Reconfiguration will reset the entire environment scene and allow you to load/swap assets and agents.
-
-Episode initialization will reset the poses of all actors, articulations, and agents,
-in addition to initializing any task relevant data like a goal
-
-See comments for how to make your own environment and what each required function should do. If followed correctly you can easily build a
-task that can simulate on the CPU and be parallelized on the GPU without having to manage GPU memory and parallelization apart from some
-code that need to be written in batched mode (e.g. reward, success conditions)
-
-For a minimal implementation of a simple task, check out
-mani_skill /envs/tasks/push_cube.py which is annotated with comments to explain how it is implemented
-"""
+"""Code for the demo environment."""
 
 from typing import Any, Dict, Union
 
 import numpy as np
 import torch
-from mani_skill.agents.multi_agent import MultiAgent
-from mani_skill.agents.robots.fetch.fetch import Fetch
-from mani_skill.agents.robots.panda.panda import Panda
 from mani_skill.envs.sapien_env import BaseEnv
 from mani_skill.sensors.camera import CameraConfig
 from mani_skill.utils import common, sapien_utils
@@ -33,42 +11,27 @@ from mani_skill.utils.building import actors
 from mani_skill.utils.registration import register_env
 from mani_skill.utils.structs.types import GPUMemoryConfig, SimConfig
 
+from stompy_live.agents.stompy import Stompy
+
 
 # register the environment by a unique ID and specify a max time limit. Now once this file is imported you can do gym.make("CustomEnv-v0")
-@register_env("CustomEnv-v1", max_episode_steps=200)
-class CustomEnv(BaseEnv):
-    """
-    Task Description
-    ----------------
-    Add a task description here
-
-    Randomizations
-    --------------
-    - how is it randomized?
-    - how is that randomized?
-
-    Success Conditions
-    ------------------
-    - what is done to check if this task is solved?
-
-    Visualization: link to a video/gif of the task being solved
-    """
-
+@register_env("StompyEnv")
+class StompyEnv(BaseEnv):
     # here you can define a list of robots that this task is built to support and be solved by. This is so that
     # users won't be permitted to use robots not predefined here. If SUPPORTED_ROBOTS is not defined then users can do anything
-    SUPPORTED_ROBOTS = ["panda", "fetch"]
+    SUPPORTED_ROBOTS = ["stompy"]
     # if you want to say you support multiple robots you can use SUPPORTED_ROBOTS = [["panda", "panda"], ["panda", "fetch"]] etc.
 
     # to help with programming, you can assert what type of agents are supported like below, and any shared properties of self.agent
     # become available to typecheckers and auto-completion. E.g. Panda and Fetch both share a property called .tcp (tool center point).
-    agent: Union[Panda, Fetch]
+    agent: Union[Stompy]
     # if you want to do typing for multi-agent setups, use this below and specify what possible tuples of robots are permitted by typing
     # this will then populate agent.agents (list of the instantiated agents) with the right typing
     # agent: MultiAgent[Union[Tuple[Panda, Panda], Tuple[Panda, Panda, Panda]]]
 
     # in the __init__ function you can pick a default robot your task should use e.g. the panda robot by setting a default for robot_uids argument
     # note that if robot_uids is a list of robot uids, then we treat it as a multi-agent setup and load each robot separately.
-    def __init__(self, *args, robot_uids="panda", robot_init_qpos_noise=0.02, **kwargs):
+    def __init__(self, *args, robot_uids="stompy", robot_init_qpos_noise=0.02, **kwargs):
         self.robot_init_qpos_noise = robot_init_qpos_noise
         super().__init__(*args, robot_uids=robot_uids, **kwargs)
 

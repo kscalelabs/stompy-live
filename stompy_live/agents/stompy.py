@@ -1,12 +1,13 @@
+"""Defines class for the stompy agent."""
+
 import numpy as np
 import sapien
-from transforms3d import euler
-
 from mani_skill import PACKAGE_ASSET_DIR
 from mani_skill.agents.base_agent import BaseAgent, Keyframe
-from mani_skill.agents.controllers import *
+from mani_skill.agents.controllers import PDJointPosControllerConfig
 from mani_skill.agents.registration import register_agent
 from mani_skill.sensors.camera import CameraConfig
+from transforms3d import euler
 
 
 @register_agent()  # uncomment this if you want to register the agent so you can instantiate it by ID when creating environments
@@ -105,7 +106,7 @@ class Stompy(BaseAgent):
         )
 
     @property
-    def _sensor_configs(self):
+    def _sensor_configs(self) -> None:
         return [
             CameraConfig(
                 uid="head_camera",
