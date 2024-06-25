@@ -20,3 +20,5 @@ while not done:
     done = terminated or truncated
     env.render()  # a display is required to render
 env.close()
+
+# export MUJOCO_PY_MUJOCO_PATH=/home/dpsh/.mujoco/mujoco210/bin
