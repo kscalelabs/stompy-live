@@ -1,7 +1,7 @@
 """Testing basic maniskill environment using gym."""
 
 import gymnasium as gym
-
+import mani_skill.envs
 env = gym.make(
     "PickCube-v1",  # there are more tasks e.g. "PushCube-v1", "PegInsertionSide-v1", ...
     num_envs=1,
@@ -20,5 +20,3 @@ while not done:
     done = terminated or truncated
     env.render()  # a display is required to render
 env.close()
-
-# export MUJOCO_PY_MUJOCO_PATH=/home/dpsh/.mujoco/mujoco210/bin
