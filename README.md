@@ -17,3 +17,7 @@ Test Maniskill:
 python -m tests.maniskilltest
 python -m tests.parallelmaniskilltest
 ```
+
+## Environment variables
+
+- `STOMPYLIVE_TOKEN`: get from https://twitchapps.com/tmi/
