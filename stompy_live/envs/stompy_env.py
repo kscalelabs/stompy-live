@@ -6,8 +6,7 @@ import numpy as np
 import torch
 from mani_skill.envs.sapien_env import BaseEnv
 from mani_skill.sensors.camera import CameraConfig
-from mani_skill.utils import common, sapien_utils
-from mani_skill.utils.building import actors
+from mani_skill.utils import sapien_utils
 from mani_skill.utils.registration import register_env
 from mani_skill.utils.structs.types import GPUMemoryConfig, SimConfig
 
@@ -19,7 +18,7 @@ from stompy_live.agents.stompy import Stompy
 class StompyEnv(BaseEnv):
     # here you can define a list of robots that this task is built to support and be solved by. This is so that
     # users won't be permitted to use robots not predefined here. If SUPPORTED_ROBOTS is not defined then users can do anything
-    SUPPORTED_ROBOTS = ["stompy"]
+    SUPPORTED_ROBOTS = [["stompy", "fetch"]["fetch"]]
     # if you want to say you support multiple robots you can use SUPPORTED_ROBOTS = [["panda", "panda"], ["panda", "fetch"]] etc.
 
     # to help with programming, you can assert what type of agents are supported like below, and any shared properties of self.agent
