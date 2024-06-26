@@ -1,23 +1,17 @@
 # use python -m mani_skill.examples.demo_stompy --record-dir="videos" to save video
 
 import argparse
+import os
+from typing import Any, Dict, Union
 
 import gymnasium as gym
 import numpy as np
-
-from mani_skill.envs.sapien_env import BaseEnv
-from mani_skill.utils.wrappers import RecordEpisode
-
-from typing import Any, Dict, Union
-import os
 import torch
 import torch.random
-from transforms3d.euler import euler2quat
-
-from mani_skill.agents.robots import StompyArm
 from mani_skill.agents.base_agent import BaseAgent
 from mani_skill.agents.controllers import *
-
+from mani_skill.agents.robots import StompyArm
+from mani_skill.envs.sapien_env import BaseEnv
 from mani_skill.sensors.camera import CameraConfig
 from mani_skill.utils import common, sapien_utils
 from mani_skill.utils.building import actors
@@ -25,6 +19,8 @@ from mani_skill.utils.registration import register_env
 from mani_skill.utils.scene_builder.table import TableSceneBuilder
 from mani_skill.utils.structs import Pose
 from mani_skill.utils.structs.types import Array, GPUMemoryConfig, SimConfig
+from mani_skill.utils.wrappers import RecordEpisode
+from transforms3d.euler import euler2quat
 
 
 def parse_args(args=None):
