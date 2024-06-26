@@ -4,6 +4,7 @@ from typing import Any, Dict, Union
 
 import numpy as np
 import torch
+from mani_skill.agents.robots import Fetch
 from mani_skill.envs.sapien_env import BaseEnv
 from mani_skill.sensors.camera import CameraConfig
 from mani_skill.utils import sapien_utils
@@ -18,19 +19,19 @@ from stompy_live.agents.stompy import Stompy
 class StompyEnv(BaseEnv):
     # here you can define a list of robots that this task is built to support and be solved by. This is so that
     # users won't be permitted to use robots not predefined here. If SUPPORTED_ROBOTS is not defined then users can do anything
-    SUPPORTED_ROBOTS = [["stompy", "fetch"]["fetch"]]
+    SUPPORTED_ROBOTS = [["stompy"], ["fetch"]]
     # if you want to say you support multiple robots you can use SUPPORTED_ROBOTS = [["panda", "panda"], ["panda", "fetch"]] etc.
 
     # to help with programming, you can assert what type of agents are supported like below, and any shared properties of self.agent
     # become available to typecheckers and auto-completion. E.g. Panda and Fetch both share a property called .tcp (tool center point).
-    agent: Union[Stompy]
+    agent: Union[Stompy, Fetch]
     # if you want to do typing for multi-agent setups, use this below and specify what possible tuples of robots are permitted by typing
     # this will then populate agent.agents (list of the instantiated agents) with the right typing
     # agent: MultiAgent[Union[Tuple[Panda, Panda], Tuple[Panda, Panda, Panda]]]
 
     # in the __init__ function you can pick a default robot your task should use e.g. the panda robot by setting a default for robot_uids argument
     # note that if robot_uids is a list of robot uids, then we treat it as a multi-agent setup and load each robot separately.
-    def __init__(self, *args, robot_uids="stompy", robot_init_qpos_noise=0.02, **kwargs):
+    def __init__(self, *args, robot_uids=["stompy", "fetch"], robot_init_qpos_noise=0.02, **kwargs):
         self.robot_init_qpos_noise = robot_init_qpos_noise
         super().__init__(*args, robot_uids=robot_uids, **kwargs)
 
@@ -53,7 +54,7 @@ class StompyEnv(BaseEnv):
     def _load_agent(self, options: dict):
         # this code loads the agent into the current scene. You can usually ignore this function by deleting it or calling the inherited
         # BaseEnv._load_agent function
-        super()._load_agent()
+        super()._load_agent(options)
 
     def _load_scene(self, options: dict):
         # here you add various objects like actors and articulations. If your task was to push a ball, you may add a dynamic sphere object on the ground
@@ -81,12 +82,12 @@ class StompyEnv(BaseEnv):
     def _setup_sensors(self, options: dict):
         # default code here will setup all sensors. You can add additional code to change the sensors e.g.
         # if you want to randomize camera positions
-        return super()._setup_sensors()
+        return super()._setup_sensors(options)
 
     def _load_lighting(self, options: dict):
         # default code here will setup all lighting. You can add additional code to change the lighting e.g.
         # if you want to randomize lighting in the scene
-        return super()._load_lighting()
+        return super()._load_lighting(options)
 
     """
     Episode Initialization Code
@@ -109,7 +110,7 @@ class StompyEnv(BaseEnv):
     the code below all impact some part of `self.step` function
     """
 
-    def evaluate(self, obs: Any):
+    def evaluate(self, obs: Any = None):
         # this function is used primarily to determine success and failure of a task, both of which are optional. If a dictionary is returned
         # containing "success": bool array indicating if the env is in success state or not, that is used as the terminated variable returned by
         # self.step. Likewise if it contains "fail": bool array indicating the opposite (failure state or not) the same occurs. If both are given
