@@ -9,7 +9,7 @@ from mani_skill.agents.controllers import PDJointVelControllerConfig
 from mani_skill.agents.registration import register_agent
 
 # from simgame.agents.controllers.keyboard import KeyboardControllerConfig
-from simgame.config import get_model_dir
+from stompy_live.utils.config import get_model_dir
 
 
 def deepcopy_dict(configs: dict) -> dict:
@@ -26,7 +26,7 @@ def deepcopy_dict(configs: dict) -> dict:
 @register_agent("stompy_arm")
 class StompyArm(BaseAgent):
     uid = "stompy_arm"
-    urdf_path = f"{get_model_dir()}/stompy_arm/left_arm.urdf"
+    urdf_path = f"{get_model_dir()}/stompyarm/left_arm.urdf"
 
     urdf_config = {
         # "_materials": {
@@ -72,17 +72,15 @@ class StompyArm(BaseAgent):
     # load_multiple_collisions = True
 
     arm_joint_names = [
-        "joint_rmd_x8_90_mock_1_dof_x8",
-        "joint_rmd_x8_90_mock_2_dof_x8",
-        "joint_rmd_x4_24_mock_1_dof_x4",
-        "joint_rmd_x4_24_mock_2_dof_x4",
-        "joint_rmd_x4_24_mock_3_dof_x4",
-        "joint_rmd_x4_24_mock_4_dof_x4",
-        "joint_rmd_x4_24_mock_5_dof_x4",
-        "joint_rmd_x4_24_mock_6_dof_x4",
+        "joint_upper_left_arm_1_rmd_x8_90_mock_1_dof_x8",
+        "joint_upper_left_arm_1_rmd_x8_90_mock_2_dof_x8",
+        "joint_upper_left_arm_1_rmd_x4_24_mock_1_dof_x4",
+        "joint_upper_left_arm_1_rmd_x4_24_mock_2_dof_x4",
+        "joint_lower_arm_1_dof_1_rmd_x4_24_mock_2_dof_x4",
+        "joint_lower_arm_1_dof_1_hand_1_rmd_x4_24_mock_1_dof_x4",
     ]
 
-    ee_link_name = "link_rmd_x4_24_mock_6_inner_rmd_x4_24_1"
+    ee_link_name = "link_lower_arm_1_dof_1_rmd_x4_24_mock_2_outer_rmd_x4_24_1"
 
     # arm_stiffness = 1e3
     # arm_damping = 1e2

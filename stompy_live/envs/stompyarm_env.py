@@ -15,8 +15,8 @@ from mani_skill.utils.structs.types import Array
 from torch import Tensor
 from transforms3d.euler import euler2quat
 
-from simgame.agents.stompy_arm import StompyArm
-from simgame.utils.scene_builder.table import StompyTableSceneBuilder
+from stompy_live.agents.stompyarm.stompyarm import StompyArm
+from stompy_live.utils.scene_builders.table_builder import StompyTableSceneBuilder
 
 
 @register_env("StompyPushCube-v1", max_episode_steps=50)
