@@ -1,6 +1,7 @@
 import os
 import socket
 import queue
+import re
 
 server = 'irc.chat.twitch.tv'
 port = 6667
@@ -9,6 +10,14 @@ token = os.environ["STOMPYLIVE_TOKEN"]
 channel = '#kscaletest'
 
 message_queue = queue.Queue()
+
+def parse_message(raw_message):
+    # This regex pattern matches the message part of a PRIVMSG
+    pattern = r'^:.+!.+@.+\.tmi\.twitch\.tv PRIVMSG #\w+ :(.+)$'
+    match = re.match(pattern, raw_message)
+    if match:
+        return match.group(1)
+    return None
 
 def init():
     sock = socket.socket()
@@ -26,7 +35,9 @@ def init():
                 sock.send("PONG\n".encode('utf-8'))
             
             elif len(resp) > 0:
-                message_queue.put(resp)
+                message = parse_message(resp)
+                if message:
+                    message_queue.put(message)
 
     except KeyboardInterrupt:
         sock.close()
