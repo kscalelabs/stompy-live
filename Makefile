@@ -32,6 +32,13 @@ install:
 
 install-dev:
 	@pip install --verbose -e '.[dev]'
+
+install-urdf:
+	curl -O https://media.kscale.dev/stompy/arm_latest_stl_urdf.tar.gz
+	tar -xvzf arm_latest_stl_urdf.tar.gz
+	rm arm_latest_stl_urdf.tar.gz
+	mv full_left_arm.urdf stompy_live/assets/full_left_arm.urdf
+	mv meshes stompy_live/assets/meshes
 .PHONY: install
 
 build-ext:
