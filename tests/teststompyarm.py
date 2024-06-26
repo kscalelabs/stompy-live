@@ -9,6 +9,9 @@ from stompy_live.agents.stompy.stompy import Stompy  # noqa: F401
 from stompy_live.envs.stompy_env import StompyEnv  # noqa: F401
 from stompy_live.envs.stompyarm_env import StompyPushCubeEnv  # noqa: F401
 
+# model = model_client()
+language_instruction = "move the apple to the right"
+
 env = gym.make(
     "StompyPushCube-v1",
     num_envs=1,
@@ -24,9 +27,11 @@ obs, _ = env.reset(seed=0)  # reset with a seed for determinism
 done = False
 infinite = False
 while not infinite:
+    # grpc or websocket
+    # action = model.act(obs["image", "qpos", "language_instruction"])
+    action = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     # action = env.action_space.sample()
     # print(action)
-    action = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     obs, reward, terminated, truncated, info = env.step(action)
     done = terminated or truncated
     env.render()  # a display is required to render
