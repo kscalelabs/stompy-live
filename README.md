@@ -16,6 +16,7 @@ Test Maniskill:
 ```bash
 python -m tests.maniskilltest
 python -m tests.parallelmaniskilltest
+python -m tests.test_env
 ```
 
 ## Environment variables
