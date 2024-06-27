@@ -2,9 +2,10 @@ from twitch.client import message_queue, init
 from threading import Thread
 import time, queue
 
+
 def main():
     print("Starting Twitch IRC client")
-    
+
     # Initializes Twitch IRC thread
     irc_thread = Thread(target=init)
     irc_thread.daemon = True  # This allows the thread to exit when the main program does

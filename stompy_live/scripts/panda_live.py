@@ -91,11 +91,11 @@ def main(args) -> None:
         viewer = env.render()
         viewer.paused = args.pause
         env.render()
-    
-    model = ??
+
+    model = None
     while True:
         action = env.action_space.sample()
-        action = model.act(obs["image", "qpos", "language_instruction"]) ??
+        action = model.act(obs["image", "qpos", "language_instruction"])
         obs, reward, terminated, truncated, info = env.step(action)
         if verbose:
             print("reward", reward)

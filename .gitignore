@@ -19,3 +19,8 @@ build/
 dist/
 *.so
 out*/
+
+#Checkpoints, h5 files, recordings
+*.pt
+*.mp4
+runs/

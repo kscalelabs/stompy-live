@@ -4,3 +4,5 @@ mani_skill
 torch
 torchvision
 torchaudio
+tyro
+tensorboard

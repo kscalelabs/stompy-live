@@ -1,3 +1,5 @@
+"""Code for PPO training."""
+
 import os
 import random
 import time
@@ -18,6 +20,16 @@ from mani_skill.utils.wrappers.record import RecordEpisode
 from mani_skill.vector.wrappers.gymnasium import ManiSkillVectorEnv
 from torch.distributions.normal import Normal
 from torch.utils.tensorboard import SummaryWriter
+
+"""
+python stompy_live/scripts/ppo.py --env_id="PickCube-v1" \
+  --num_envs=2048 --update_epochs=8 --num_minibatches=32 \
+  --total_timesteps=10_000_000 --eval_freq=10 --num-steps=20
+
+python stompy_live/scripts/ppo.py --env_id="PickCube-v1" \
+  --num_envs=2048 --update_epochs=8 --num_minibatches=32 \
+  --total_timesteps=10_000_000 --eval_freq=10 --num-steps=20
+"""
 
 
 @dataclass
