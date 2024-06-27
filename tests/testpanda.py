@@ -14,7 +14,7 @@ from stompy_live.envs.stompyarm_env import StompyPushCubeEnv  # noqa: F401
 language_instruction = "move the apple to the right"
 
 env = gym.make(
-    "StompyPushCube-v1",
+    "PandaPushCube-v1",
     num_envs=1,
     # robot_uids="stompy_arm",  # test until stompy is fixed
     obs_mode="state",  # there is also "state_dict", "rgbd", ...

@@ -1,6 +1,6 @@
 """Tests if the assets are correcty looaded and what the actor_id are."""
 
-from mani_skill.utils.building.actors.ycb import model_db
+from stompy_live.utils.scene_builders.ycb_builder import model_db
 
 
 def main():
