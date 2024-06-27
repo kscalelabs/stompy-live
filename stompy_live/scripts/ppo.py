@@ -26,14 +26,27 @@ from stompy_live.envs.stompy_env import StompyEnv  # noqa: F401
 from stompy_live.envs.stompyarm_env import StompyPushCubeEnv  # noqa: F401
 
 """
+Running PPO on PickCube-v1 from maniskill for testing
+Benchmark: ~7000 SPS on one GPU on lambda cluster
 python stompy_live/scripts/ppo.py --env_id="PickCube-v1" \
   --num_envs=2048 --update_epochs=8 --num_minibatches=32 \
   --total_timesteps=3_500_000 --eval_freq=10 --num-steps=20
-Benchmark: ~7000 SPS on one GPU on lambda cluster
 
+
+Running PPO on stompy arm in the push cube environment
 python stompy_live/scripts/ppo.py --env_id="SPushCube-v0" \
   --num_envs=2048 --update_epochs=8 --num_minibatches=32 \
   --total_timesteps=10_000_000 --eval_freq=10 --num-steps=20
+
+Evaluating 
+python stompy_live/scripts/ppo.py --env_id="SPushCube-v0" \
+   --evaluate --checkpoint=runs/SPushCube-v0__ppo__1__1719522593/ckpt_151.pt \
+   --num_eval_envs=1 --num-eval-steps=1000
+
+Viewing a trajectory
+python -m mani_skill.trajectory.replay_trajectory \
+  --traj-path=path/to/trajectory.h5 --use-env-states --shader="rt-fast" \
+  --save-video --allow-failure -o "none"
 """
 
 

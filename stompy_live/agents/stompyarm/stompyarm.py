@@ -85,7 +85,7 @@ class StompyArm(BaseAgent):
     tcp_link_name = "link_lower_arm_1_dof_1_hand_1_spur_gear_26_teeth_1"
 
     arm_stiffness = 1e3
-    arm_damping = 1e2
+    arm_damping = 10
     arm_force_limit = 100
 
     gripper_stiffness = 1e3
