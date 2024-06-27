@@ -56,7 +56,7 @@ class Agent(nn.Module):
 # Load the model
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 env_kwargs = dict(obs_mode="state", control_mode="pd_joint_delta_pos", render_mode="rgb_array", sim_backend="gpu")
-envs = gym.make("PickCube-v1", num_envs=1, **env_kwargs)
+envs = gym.make("PushCube-v1", num_envs=1, **env_kwargs)
 if isinstance(envs.action_space, gym.spaces.Dict):
     envs = FlattenActionSpaceWrapper(envs)
 assert isinstance(envs.single_action_space, gym.spaces.Box), "only continuous action space is supported"
