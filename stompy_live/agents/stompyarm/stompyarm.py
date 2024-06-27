@@ -82,13 +82,9 @@ class StompyArm(BaseAgent):
 
     ee_link_name = "link_lower_arm_1_dof_1_rmd_x4_24_mock_2_outer_rmd_x4_24_1"
 
-    # arm_stiffness = 1e3
-    # arm_damping = 1e2
-    # arm_force_limit = 100
-
-    arm_stiffness = 1
-    arm_damping = 1
-    arm_force_limit = 1
+    arm_stiffness = 1e3
+    arm_damping = 1e2
+    arm_force_limit = 100
 
     gripper_stiffness = 1e3
     gripper_damping = 1e2

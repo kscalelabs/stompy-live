@@ -1,4 +1,4 @@
-"""Custom controller class for stompy."""
+"""Custom controller class for stompy's arm."""
 
 from dataclasses import dataclass
 from typing import Sequence
