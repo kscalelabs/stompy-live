@@ -1,36 +1,17 @@
-# use python -m mani_skill.examples.demo_stompy --record-dir="videos" to save video
+"""Going live with emelia franka panda arm."""
 
 import argparse
-import os
-from typing import Any, Dict, Union
 
 import gymnasium as gym
 import numpy as np
-import torch
-import torch.random
-from mani_skill.agents.base_agent import BaseAgent
-from mani_skill.agents.controllers import *
-from mani_skill.agents.robots import StompyArm
 from mani_skill.envs.sapien_env import BaseEnv
-from mani_skill.sensors.camera import CameraConfig
-from mani_skill.utils import common, sapien_utils
-from mani_skill.utils.building import actors
-from mani_skill.utils.registration import register_env
-from mani_skill.utils.scene_builder.table import TableSceneBuilder
-from mani_skill.utils.structs import Pose
-from mani_skill.utils.structs.types import Array, GPUMemoryConfig, SimConfig
 from mani_skill.utils.wrappers import RecordEpisode
-from transforms3d.euler import euler2quat
 
 
 def parse_args(args=None):
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "-e",
-        "--env-id",
-        type=str,
-        default="Stompy-PushCube",
-        help="The environment ID of the task you want to simulate",
+        "-e", "--env-id", type=str, default="PickCube-v1", help="The environment ID of the task you want to simulate"
     )
     parser.add_argument("-o", "--obs-mode", type=str, default="none")
     parser.add_argument(
@@ -51,25 +32,24 @@ def parse_args(args=None):
     )
     parser.add_argument("--record-dir", type=str)
     parser.add_argument(
-        "-p",
-        "--pause",
-        action="store_true",
-        help="If using human render mode, auto pauses the simulation upon loading",
+        "-p", "--pause", action="store_true", help="If using human render mode, auto pauses the simulation upon loading"
     )
     parser.add_argument("--quiet", action="store_true", help="Disable verbose output.")
     parser.add_argument(
         "-s",
         "--seed",
         type=int,
-        help="Seed the random actions and simulator. Default is 0",
-        default=0,
+        help="Seed the random actions and simulator. Default is no seed",
     )
     args, opts = parser.parse_known_args(args)
 
     # Parse env kwargs
     if not args.quiet:
         print("opts:", opts)
-    eval_str = lambda x: eval(x[1:]) if x.startswith("@") else x
+
+    def eval_str(x: str) -> str:
+        return eval(x[1:]) if x.startswith("@") else x
+
     env_kwargs = dict((x, eval_str(y)) for x, y in zip(opts[0::2], opts[1::2]))
     if not args.quiet:
         print("env_kwargs:", env_kwargs)
@@ -78,14 +58,7 @@ def parse_args(args=None):
     return args
 
 
-def main(args):
-    # print which link is the root
-    # print(StompyArm.urdf_config)
-    # print all links from arm
-    # print(StompyArm.fix_root_link)
-    # breakpoint()
-    # print(StompyArm.get_state(StompyArm))
-    # print(StompyArm.get_proprioception())
+def main(args) -> None:
     np.set_printoptions(suppress=True, precision=3)
     verbose = not args.quiet
     if args.seed is not None:
@@ -118,28 +91,23 @@ def main(args):
         viewer = env.render()
         viewer.paused = args.pause
         env.render()
-
+    
+    model = ??
     while True:
         action = env.action_space.sample()
-        print(action)
-        # action = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-        # print(action)
+        action = model.act(obs["image", "qpos", "language_instruction"]) ??
         obs, reward, terminated, truncated, info = env.step(action)
         if verbose:
-            # print("reward", reward)
-            # print("terminated", terminated)
-            # print("truncated", truncated)
-            # print("info", info)
-            # print("observation", obs)
-            # print(" ".join(f"{key}: {value}" for key, value in obs.items()))
-            pass
+            print("reward", reward)
+            print("terminated", terminated)
+            print("truncated", truncated)
+            print("info", info)
 
         if args.render_mode is not None:
             env.render()
 
         if args.render_mode is None or args.render_mode != "human":
             if terminated or truncated:
-                print("Resetting environment")
                 break
     env.close()
 
