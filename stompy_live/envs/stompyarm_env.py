@@ -5,7 +5,7 @@ from typing import Any
 import numpy as np
 import torch
 import torch.random
-from mani_skill.envs.tasks.tabletop.push_cube import PushCubeEnv
+from mani_skill.envs.tasks.tabletop.push_cube import PushCubeEnv, euler2quat
 from mani_skill.sensors.camera import CameraConfig
 from mani_skill.utils import sapien_utils
 from mani_skill.utils.building import actors
@@ -13,7 +13,6 @@ from mani_skill.utils.registration import register_env
 from mani_skill.utils.structs import Pose
 from mani_skill.utils.structs.types import Array
 from torch import Tensor
-from transforms3d.euler import euler2quat
 
 from stompy_live.agents.stompyarm.stompyarm import StompyArm
 from stompy_live.utils.scene_builders.table_builder import StompyTableSceneBuilder
@@ -28,6 +27,7 @@ class StompyPushCubeEnv(PushCubeEnv):
     # Set some commonly used values
     goal_radius = 0.1
     cube_half_size = 0.02
+    sphere_radius = 0.02
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:  # noqa: ANN401
         super().__init__(*args, robot_uids="stompy_arm", **kwargs)
@@ -75,6 +75,21 @@ class StompyPushCubeEnv(PushCubeEnv):
             body_type="dynamic",
         )
 
+        self.sphere = actors.build_sphere(
+            self.scene,
+            radius=self.sphere_radius,
+            color=np.array([12, 42, 160, 255]) / 255,
+            name="ball",
+            body_type="dynamic",
+        )
+        model_id = "024_bowl"
+        self.builder = actors.get_actor_builder(
+            self.scene,
+            id=f"ycb:{model_id}",
+        )
+        self.bowl = self.builder.build(name="bowl")
+
+        self.bowl2 = self.builder.build(name="bowl2")
         # We also add in red/white target to visualize where we want the cube
         # to be pushed to we specify add_collisions=False as we only use this
         # as a visual for videos and do not want it to affect the actual physics
@@ -98,10 +113,10 @@ class StompyPushCubeEnv(PushCubeEnv):
             xyz[..., :2] = torch.rand((b, 2)) * 0.2 - 0.1
             xyz[..., 2] = self.cube_half_size
             q = [1, 0, 0, 0]
-            obj_pose = Pose.create_from_pq(p=xyz, q=q)
-            self.obj.set_pose(obj_pose)
+            # obj_pose = Pose.create_from_pq(p=xyz, q=q)
+            # self.obj.set_pose(obj_pose)
 
-            target_region_xyz = xyz + torch.tensor([0.1 + self.goal_radius, 0, 0])
+            target_region_xyz = xyz + torch.tensor([0.1 + self.goal_radius, -10000, 0])
             target_region_xyz[..., 2] = 1e-3
             self.goal_region.set_pose(
                 Pose.create_from_pq(
@@ -109,6 +124,26 @@ class StompyPushCubeEnv(PushCubeEnv):
                     q=euler2quat(0, np.pi / 2, 0),
                 )
             )
+
+            sphere_xyz = torch.zeros((b, 3))
+            sphere_xyz[..., :2] = self.sphere_radius
+            # self.sphere.set_pose(sphere_pose)
+
+            bowl_xyz = sphere_xyz + torch.tensor([0, 0.15, 0])
+            bowl_pose = Pose.create_from_pq(p=bowl_xyz, q=q)
+            self.bowl.set_pose(bowl_pose)
+
+            bowl2_xyz = sphere_xyz + torch.tensor([0, -0.15, 0])
+            bowl2_pose = Pose.create_from_pq(p=bowl2_xyz, q=q)
+            self.bowl2.set_pose(bowl2_pose)
+
+            sphere_xyz = sphere_xyz + torch.tensor([0, 0.15, 0])
+            sphere_pose = Pose.create_from_pq(p=sphere_xyz, q=q)
+            self.sphere.set_pose(sphere_pose)
+
+            obj_xyz = sphere_xyz + torch.tensor([0, 0.05, 0])
+            obj_pose = Pose.create_from_pq(p=obj_xyz, q=q)
+            self.obj.set_pose(obj_pose)
 
     def evaluate(self) -> dict[str, Tensor]:
         cur_radius = torch.linalg.norm(self.obj.pose.p[..., :2] - self.goal_region.pose.p[..., :2], axis=1)
@@ -119,13 +154,15 @@ class StompyPushCubeEnv(PushCubeEnv):
         }
 
     def compute_dense_reward(self, obs: Any, action: Array, info: dict) -> Tensor:  # noqa: ANN401
-        obj_to_goal_dist = torch.linalg.norm(self.obj.pose.p[..., :2] - self.goal_region.pose.p[..., :2], axis=1)
-        place_reward = 1 - torch.tanh(5 * obj_to_goal_dist)
-        reward = place_reward
-        reward[info["success"]] = 3
-        return reward
+        # obj_to_goal_dist = torch.linalg.norm(self.obj.pose.p[..., :2] - self.goal_region.pose.p[..., :2], axis=1)
+        # place_reward = 1 - torch.tanh(5 * obj_to_goal_dist)
+        # reward = place_reward
+        # reward[info["success"]] = 3
+        # return reward
+        return torch.tensor(0.0)
 
     def compute_normalized_dense_reward(self, obs: Any, action: Array, info: dict) -> Tensor:  # noqa: ANN401
-        # This should be equal to compute_dense_reward / max possible reward
-        max_reward = 3.0
-        return self.compute_dense_reward(obs=obs, action=action, info=info) / max_reward
+        # # This should be equal to compute_dense_reward / max possible reward
+        # max_reward = 3.0
+        # return self.compute_dense_reward(obs=obs, action=action, info=info) / max_reward
+        return torch.tensor(0.0)
