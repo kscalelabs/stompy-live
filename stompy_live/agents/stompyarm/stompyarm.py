@@ -5,8 +5,9 @@ from copy import deepcopy
 import numpy as np
 import sapien
 from mani_skill.agents.base_agent import BaseAgent, Keyframe
-from mani_skill.agents.controllers import PDJointVelControllerConfig
+from mani_skill.agents.controllers import PDJointPosControllerConfig, PDJointVelControllerConfig
 from mani_skill.agents.registration import register_agent
+from mani_skill.utils import sapien_utils
 
 # from simgame.agents.controllers.keyboard import KeyboardControllerConfig
 from stompy_live.utils.config import get_model_dir
@@ -81,6 +82,7 @@ class StompyArm(BaseAgent):
     ]
 
     ee_link_name = "link_lower_arm_1_dof_1_rmd_x4_24_mock_2_outer_rmd_x4_24_1"
+    tcp_link_name = "link_lower_arm_1_dof_1_hand_1_spur_gear_26_teeth_1"
 
     arm_stiffness = 1e3
     arm_damping = 1e2
@@ -100,4 +102,16 @@ class StompyArm(BaseAgent):
                 self.arm_damping,  # this might need to be tuned separately
                 self.arm_force_limit,
             ),
+            "pd_joint_delta_pos": PDJointPosControllerConfig(
+                self.arm_joint_names,
+                lower=-0.1,
+                upper=0.1,
+                stiffness=self.arm_stiffness,
+                damping=self.arm_damping,
+                force_limit=self.arm_force_limit,
+                use_delta=True,
+            ),
         }
+
+    def _after_init(self) -> None:
+        self.tcp = sapien_utils.get_obj_by_name(self.robot.get_links(), self.ee_link_name)

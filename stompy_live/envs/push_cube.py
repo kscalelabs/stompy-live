@@ -12,13 +12,13 @@ from mani_skill.utils.building import actors
 from mani_skill.utils.registration import register_env
 from mani_skill.utils.structs import Pose
 from mani_skill.utils.structs.types import Array
-from simgame.agents.stompy_arm import StompyArm
-from simgame.utils.scene_builder.table import StompyTableSceneBuilder
+from stompy_live.agents.stompyarm.stompyarm import StompyArm
+from stompy_live.utils.scene_builders.table_builder import StompyTableSceneBuilder
 from torch import Tensor
 from transforms3d.euler import euler2quat
 
 
-@register_env("SPushCube", max_episode_steps=50)
+@register_env("SPushCube-v0", max_episode_steps=50)
 class StompyPushCubeEnv(PushCubeEnv):
     SUPPORTED_ROBOTS = ["stompy_arm"]
 
