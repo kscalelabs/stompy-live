@@ -1,0 +1,6 @@
+These are the APIs that *interface* with certain pre-provided models. The flow
+generally follows as such:
+
+- read in a `model.pt` file,
+- and whenever recieving an image (and eventually a textual command) as input,
+  it will output a (for now 7-dimensional) move.
