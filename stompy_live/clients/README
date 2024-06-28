@@ -1,0 +1,3 @@
+These are the maniskill clients. They interface with the APIs running the
+models, take the output of the APIs, and render it via maniskill. Then it gets
+an image from maniskill and feed it to the API, repeating the cycle.
