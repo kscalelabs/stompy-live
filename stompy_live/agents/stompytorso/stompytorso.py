@@ -51,6 +51,8 @@ class StompyTorso(BaseAgent):
         # },
     }
 
+    # print links in robot
+
     startpos = [0.0, 0.0, 0.0]
     startorn = [0.0, 0.0, 0.0, 1.0]
     startrpy = [0.0, 0.0, 0.0]
@@ -58,14 +60,10 @@ class StompyTorso(BaseAgent):
     keyframes = {
         "rest": Keyframe(
             pose=sapien.Pose(p=startpos, q=startorn),
-            # qpos=np.array(
-            #     [
-            #         [1.0, 1.0, 1.0],
-            #         [0.0, 0.0, 1.0],
-            #         [0.0, 0.0, 0.0],
-            #     ]
-            # ).flatten(),
-            qpos=np.array([1.0, 1.0, 1.0]),
+            qpos=np.array(
+                [1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+            ).flatten(),
+            # qpos=np.array([1.0, 1.0, 1.0]),
         )
     }
 
@@ -97,14 +95,14 @@ class StompyTorso(BaseAgent):
     def _controller_configs(self) -> dict:
         return {
             "pd_joint_vel": PDJointVelControllerConfig(
-                self.arm_joint_names,
+                [j.name for j in self.robot.active_joints],
                 -1.0,
                 1.0,
                 self.arm_damping,  # this might need to be tuned separately
                 self.arm_force_limit,
             ),
             "pd_joint_delta_pos": PDJointPosControllerConfig(
-                self.arm_joint_names,
+                [j.name for j in self.robot.active_joints],
                 lower=-0.1,
                 upper=0.1,
                 stiffness=self.arm_stiffness,
