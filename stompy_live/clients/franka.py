@@ -1,9 +1,18 @@
+"""Client for franka arms that connects to the franka API and sends observations to get actions."""
+
+import argparse
 import io
 
 import gymnasium as gym
 import requests
 import torch
 from mani_skill.utils.wrappers.flatten import FlattenActionSpaceWrapper
+
+# Parse franka API route location from command line arguments
+
+parser = argparse.ArgumentParser(description="Client for Franka API")
+parser.add_argument("--route", type=str, default="http://localhost:8000/act", help="Where the API is hosted")
+args = parser.parse_args()
 
 # Load the model
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -25,7 +34,7 @@ while True:
             torch.save(obs, buffer)
             obs_bytes = buffer.getvalue()
 
-            action_bytes = requests.post("http://localhost:8000/act", data=obs_bytes).content
+            action_bytes = requests.post(args.route, data=obs_bytes).content
             action = torch.load(io.BytesIO(action_bytes))
 
         obs, reward, terminated, truncated, info = envs.step(action)
