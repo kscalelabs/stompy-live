@@ -36,7 +36,7 @@ class StompyPushCubeEnv(PushCubeEnv):
     def _default_sensor_configs(self) -> list[CameraConfig]:
         # Registers one 128x128 camera looking at the robot, cube, and target
         # a smaller sized camera will be lower quality, but render faster
-        pose = sapien_utils.look_at(eye=[0.3, 0, 0.6], target=[-0.1, 0, 0.1])
+        pose = sapien_utils.look_at(eye=[0.3, -0.3, 0.6], target=[-0.1, 0, 0.1])
         return [
             CameraConfig(
                 "base_camera",
@@ -54,8 +54,8 @@ class StompyPushCubeEnv(PushCubeEnv):
         # Registers a more high-definition (512x512) camera used just for
         # rendering when render_mode="rgb_array" or calling
         # env.render_rgb_array()
-        pose = sapien_utils.look_at([0.6, 0.7, 0.6], [0.0, 0.0, 0.35])
-        return CameraConfig("render_camera", pose=pose, width=512, height=512, fov=1, near=0.01, far=100)
+        pose = sapien_utils.look_at([0.9, 0, 0.6], [0.0, 0.0, 0.35])
+        return CameraConfig("render_camera", pose=pose, width=512, height=512, fov=1.5, near=0.01, far=100)
 
     def _load_scene(self, options: dict) -> None:
         # We use a prebuilt scene builder class that automatically loads in a
@@ -97,14 +97,14 @@ class StompyPushCubeEnv(PushCubeEnv):
             xyz = torch.zeros((b, 3))
             xyz[..., :2] = torch.rand((b, 2)) * 0.2 - 0.1
             xyz[..., 2] = self.cube_half_size
-            xyz = xyz + torch.tensor([0, 0, 0])
+            xyz = xyz + torch.tensor([0.1, 0.15, 0])
             q = [1, 0, 0, 0]
             obj_pose = Pose.create_from_pq(p=xyz, q=q)
             self.obj.set_pose(obj_pose)
 
             target_region_xyz = xyz + torch.tensor([0.1 + self.goal_radius, 0, 0])
             target_region_xyz[..., 2] = 1e-3
-            target_region_xyz = target_region_xyz + torch.tensor([0, -0.2, 0])
+            target_region_xyz = target_region_xyz + torch.tensor([0, -0.05, 0])
             self.goal_region.set_pose(
                 Pose.create_from_pq(
                     p=target_region_xyz,
@@ -121,9 +121,44 @@ class StompyPushCubeEnv(PushCubeEnv):
         }
 
     def compute_dense_reward(self, obs: Any, action: Array, info: dict) -> Tensor:  # noqa: ANN401
-        obj_to_goal_dist = torch.linalg.norm(self.obj.pose.p[..., :2] - self.goal_region.pose.p[..., :2], axis=1)
-        place_reward = 1 - torch.tanh(5 * obj_to_goal_dist)
-        reward = place_reward
+        # We also create a pose marking where the robot should push the cube from that is easiest (pushing from behind the cube)
+        # tcp_push_pose = Pose.create_from_pq(
+        #     p=self.obj.pose.p
+        #     + torch.tensor([-self.cube_half_size - 0.005, 0, 0], device=self.device)
+        # )
+        # tcp_to_push_pose = tcp_push_pose.p - self.agent.tcp.pose.p
+        # tcp_to_push_pose_dist = torch.linalg.norm(tcp_to_push_pose, axis=1)
+        # reaching_reward = 1 - torch.tanh(5 * tcp_to_push_pose_dist)
+        # reward = reaching_reward
+
+        # # compute a placement reward to encourage robot to move the cube to the center of the goal region
+        # # we further multiply the place_reward by a mask reached so we only add the place reward if the robot has reached the desired push pose
+        # # This reward design helps train RL agents faster by staging the reward out.
+        # reached = tcp_to_push_pose_dist < 0.01
+        # obj_to_goal_dist = torch.linalg.norm(
+        #     self.obj.pose.p[..., :2] - self.goal_region.pose.p[..., :2], axis=1
+        # )
+        # place_reward = 1 - torch.tanh(5 * obj_to_goal_dist)
+        # reward += place_reward * reached
+
+        # reward for moving cube near
+        print(self.obj.pose.p[..., :2])
+        obj_to_goal_dist = torch.linalg.norm(
+            self.obj.pose.p[..., :2] - self.goal_region.pose.p[..., :2], axis=1
+        )
+
+        # reward for gripper near cube
+        gripper_to_cube_dist = torch.linalg.norm(
+            self.obj.pose.p[..., :2] - self.agent.ee.pose.p[..., :2], axis=1
+        )
+
+        print(obj_to_goal_dist)
+        print(gripper_to_cube_dist)
+
+        reward = 0.1 * obj_to_goal_dist + 0.01 * gripper_to_cube_dist
+        print(reward)
+
+        # assign rewards to parallel environments that achieved success to the maximum of 3.
         reward[info["success"]] = 3
         return reward
 

@@ -14,11 +14,11 @@ from stompy_live.envs.stompyarm_env import StompyPushCubeEnv  # noqa: F401
 language_instruction = "move the apple to the right"
 
 env = gym.make(
-    "StompyPushCube-v1",
+    "SPushCube-v0",
     num_envs=1,
     # robot_uids="stompy_arm",  # test until stompy is fixed
     obs_mode="state",  # there is also "state_dict", "rgbd", ...
-    control_mode="pd_joint_vel",  # there is also "pd_joint_delta_pos", ...
+    control_mode="pd_joint_delta_pos",  # there is also "pd_joint_delta_pos", ...
     render_mode="human",
 )
 print("Observation space", env.observation_space)
@@ -31,7 +31,7 @@ while not infinite:
     # grpc or websocket
     # action = model.act(obs["image", "qpos", "language_instruction"])
     action = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-    action = env.action_space.sample()
+    # action = env.action_space.sample()
     # print(action)
     obs, reward, terminated, truncated, info = env.step(action)
     done = terminated or truncated

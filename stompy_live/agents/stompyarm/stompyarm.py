@@ -81,7 +81,7 @@ class StompyArm(BaseAgent):
         "joint_lower_arm_1_dof_1_hand_1_rmd_x4_24_mock_1_dof_x4",
     ]
 
-    ee_link_name = "link_lower_arm_1_dof_1_rmd_x4_24_mock_2_outer_rmd_x4_24_1"
+    ee_link_name = "link_lower_arm_1_dof_1_hand_1_inner_gripper_2"
     tcp_link_name = "link_lower_arm_1_dof_1_hand_1_spur_gear_26_teeth_1"
 
     arm_stiffness = 1e3
@@ -114,4 +114,6 @@ class StompyArm(BaseAgent):
         }
 
     def _after_init(self) -> None:
-        self.tcp = sapien_utils.get_obj_by_name(self.robot.get_links(), self.ee_link_name)
+        self.tcp = sapien_utils.get_obj_by_name(self.robot.get_links(), self.tcp_link_name)
+        self.ee = sapien_utils.get_obj_by_name(self.robot.get_links(), self.ee_link_name)
+

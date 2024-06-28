@@ -36,11 +36,11 @@ python stompy_live/scripts/ppo.py --env_id="PushCube-v1" \
 Running PPO on stompy arm in the push cube environment
 python stompy_live/scripts/ppo.py --env_id="SPushCube-v0" \
   --num_envs=2048 --update_epochs=8 --num_minibatches=32 \
-  --total_timesteps=100_000_000 --eval_freq=10 --num-steps=50
+  --total_timesteps=100_000_000 --eval_freq=10 
 
 Evaluating 
 python stompy_live/scripts/ppo.py --env_id="SPushCube-v0" \
-   --evaluate --checkpoint=runs/SPushCube-v0__ppo__1__1719522593/ckpt_151.pt \
+   --evaluate --checkpoint=runs/SPushCube-v0__ppo__1__1719554639/ckpt_291.pt \
    --num_eval_envs=1 --num-eval-steps=1000
 
 Viewing a trajectory
