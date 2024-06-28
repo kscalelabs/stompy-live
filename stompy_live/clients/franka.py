@@ -22,6 +22,9 @@ if isinstance(envs.action_space, gym.spaces.Dict):
     envs = FlattenActionSpaceWrapper(envs)
 assert isinstance(envs.single_action_space, gym.spaces.Box), "only continuous action space is supported"
 
+# Create a session for connection reuse
+session = requests.Session()
+
 while True:
     obs, info = envs.reset()
     done = False
@@ -34,7 +37,7 @@ while True:
             torch.save(obs, buffer)
             obs_bytes = buffer.getvalue()
 
-            action_bytes = requests.post(args.route, data=obs_bytes).content
+            action_bytes = session.post(args.route, data=obs_bytes).content
             action = torch.load(io.BytesIO(action_bytes))
 
         obs, reward, terminated, truncated, info = envs.step(action)
