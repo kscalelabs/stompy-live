@@ -28,15 +28,15 @@ from stompy_live.envs.stompyarm_env import StompyPushCubeEnv  # noqa: F401
 """
 Running PPO on PickCube-v1 from maniskill for testing
 Benchmark: ~7000 SPS on one GPU on lambda cluster
-python stompy_live/scripts/ppo.py --env_id="PickCube-v1" \
+python stompy_live/scripts/ppo.py --env_id="PushCube-v1" \
   --num_envs=2048 --update_epochs=8 --num_minibatches=32 \
-  --total_timesteps=3_500_000 --eval_freq=10 --num-steps=20
+  --total_timesteps=1_000_000 --eval_freq=10 --num-steps=20
 
 
 Running PPO on stompy arm in the push cube environment
 python stompy_live/scripts/ppo.py --env_id="SPushCube-v0" \
   --num_envs=2048 --update_epochs=8 --num_minibatches=32 \
-  --total_timesteps=10_000_000 --eval_freq=10 --num-steps=20
+  --total_timesteps=100_000_000 --eval_freq=10 --num-steps=50
 
 Evaluating 
 python stompy_live/scripts/ppo.py --env_id="SPushCube-v0" \
@@ -80,7 +80,7 @@ class Args:
     """path to a pretrained checkpoint file to start evaluation/training from"""
 
     # Algorithm specific arguments
-    env_id: str = "PickCube-v1"
+    env_id: str = "PushCube-v1"
     """the id of the environment"""
     total_timesteps: int = 10000000
     """total timesteps of the experiments"""

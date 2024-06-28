@@ -31,7 +31,7 @@ while not infinite:
     # grpc or websocket
     # action = model.act(obs["image", "qpos", "language_instruction"])
     action = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-    # action = env.action_space.sample()
+    action = env.action_space.sample()
     # print(action)
     obs, reward, terminated, truncated, info = env.step(action)
     done = terminated or truncated

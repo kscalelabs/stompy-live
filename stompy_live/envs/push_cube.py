@@ -1,12 +1,13 @@
 """Defines an environment for controlling the Stompy arm."""
 
-from typing import Any
+from typing import Any, Dict, Union
 
 import numpy as np
 import torch
 import torch.random
 from mani_skill.envs.tasks.tabletop.push_cube import PushCubeEnv
 from mani_skill.sensors.camera import CameraConfig
+from mani_skill.agents.robots import Panda
 from mani_skill.utils import sapien_utils
 from mani_skill.utils.building import actors
 from mani_skill.utils.registration import register_env
@@ -20,9 +21,9 @@ from transforms3d.euler import euler2quat
 
 @register_env("SPushCube-v0", max_episode_steps=50)
 class StompyPushCubeEnv(PushCubeEnv):
-    SUPPORTED_ROBOTS = ["stompy_arm"]
+    SUPPORTED_ROBOTS = ["stompy_arm", "panda"]
 
-    agent: StompyArm
+    agent: Union[Panda, StompyArm]
 
     # Set some commonly used values
     goal_radius = 0.1
@@ -109,22 +110,62 @@ class StompyPushCubeEnv(PushCubeEnv):
                 )
             )
 
-    def evaluate(self) -> dict[str, Tensor]:
-        cur_radius = torch.linalg.norm(self.obj.pose.p[..., :2] - self.goal_region.pose.p[..., :2], axis=1)
-        is_obj_placed = cur_radius < self.goal_radius
+    def evaluate(self):
+        # success is achieved when the cube's xy position on the table is within the
+        # goal region's area (a circle centered at the goal region's xy position)
+        is_obj_placed = (
+            torch.linalg.norm(
+                self.obj.pose.p[..., :2] - self.goal_region.pose.p[..., :2], axis=1
+            )
+            < self.goal_radius
+        )
 
         return {
             "success": is_obj_placed,
         }
+    
+    def _get_obs_extra(self, info: Dict):
+        # some useful observation info for solving the task includes the pose of the tcp (tool center point) which is the point between the
+        # grippers of the robot
+        obs = dict(
+            tcp_pose=self.agent.tcp.pose.raw_pose,
+        )
+        if self._obs_mode in ["state", "state_dict"]:
+            # if the observation mode is state/state_dict, we provide ground truth information about where the cube is.
+            # for visual observation modes one should rely on the sensed visual data to determine where the cube is
+            obs.update(
+                goal_pos=self.goal_region.pose.p,
+                obj_pose=self.obj.pose.raw_pose,
+            )
+        return obs
 
-    def compute_dense_reward(self, obs: Any, action: Array, info: dict) -> Tensor:  # noqa: ANN401
-        obj_to_goal_dist = torch.linalg.norm(self.obj.pose.p[..., :2] - self.goal_region.pose.p[..., :2], axis=1)
+
+    def compute_dense_reward(self, obs: Any, action: Array, info: Dict):
+        # We also create a pose marking where the robot should push the cube from that is easiest (pushing from behind the cube)
+        tcp_push_pose = Pose.create_from_pq(
+            p=self.obj.pose.p
+            + torch.tensor([-self.cube_half_size - 0.005, 0, 0], device=self.device)
+        )
+        tcp_to_push_pose = tcp_push_pose.p - self.agent.tcp.pose.p
+        tcp_to_push_pose_dist = torch.linalg.norm(tcp_to_push_pose, axis=1)
+        reaching_reward = 1 - torch.tanh(5 * tcp_to_push_pose_dist)
+        reward = reaching_reward
+
+        # compute a placement reward to encourage robot to move the cube to the center of the goal region
+        # we further multiply the place_reward by a mask reached so we only add the place reward if the robot has reached the desired push pose
+        # This reward design helps train RL agents faster by staging the reward out.
+        reached = tcp_to_push_pose_dist < 0.01
+        obj_to_goal_dist = torch.linalg.norm(
+            self.obj.pose.p[..., :2] - self.goal_region.pose.p[..., :2], axis=1
+        )
         place_reward = 1 - torch.tanh(5 * obj_to_goal_dist)
-        reward = place_reward
+        reward += place_reward * reached
+
+        # assign rewards to parallel environments that achieved success to the maximum of 3.
         reward[info["success"]] = 3
         return reward
 
-    def compute_normalized_dense_reward(self, obs: Any, action: Array, info: dict) -> Tensor:  # noqa: ANN401
-        # This should be equal to compute_dense_reward / max possible reward
+    def compute_normalized_dense_reward(self, obs: Any, action: Array, info: Dict):
+        # this should be equal to compute_dense_reward / max possible reward
         max_reward = 3.0
         return self.compute_dense_reward(obs=obs, action=action, info=info) / max_reward
