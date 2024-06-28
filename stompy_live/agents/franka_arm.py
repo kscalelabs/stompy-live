@@ -1,9 +1,8 @@
-import torch
-import torch.nn as nn
-import mani_skill
-import mani_skill.envs
 import numpy as np
-import gymnasium as gym
+import torch
+from torch import nn
+from torch.distributions import Normal
+
 
 def layer_init(layer, std=np.sqrt(2), bias_const=0.0):
     torch.nn.init.orthogonal_(layer.weight, std)
@@ -30,12 +29,13 @@ class Agent(nn.Module):
             nn.Tanh(),
             layer_init(nn.Linear(256, 256)),
             nn.Tanh(),
-            layer_init(nn.Linear(256, np.prod(envs.single_action_space.shape)), std=0.01*np.sqrt(2)),
+            layer_init(nn.Linear(256, np.prod(envs.single_action_space.shape)), std=0.01 * np.sqrt(2)),
         )
         self.actor_logstd = nn.Parameter(torch.ones(1, np.prod(envs.single_action_space.shape)) * -0.5)
 
     def get_value(self, x):
         return self.critic(x)
+
     def get_action(self, x, deterministic=False):
         action_mean = self.actor_mean(x)
         if deterministic:
@@ -44,6 +44,7 @@ class Agent(nn.Module):
         action_std = torch.exp(action_logstd)
         probs = Normal(action_mean, action_std)
         return probs.sample()
+
     def get_action_and_value(self, x, action=None):
         action_mean = self.actor_mean(x)
         action_logstd = self.actor_logstd.expand_as(action_mean)
