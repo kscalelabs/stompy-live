@@ -97,14 +97,14 @@ class StompyArm(BaseAgent):
     def _controller_configs(self) -> dict:
         return {
             "pd_joint_vel": PDJointVelControllerConfig(
-                self.arm_joint_names,
+                [j.name for j in self.robot.active_joints],
                 -1.0,
                 1.0,
                 self.arm_damping,  # this might need to be tuned separately
                 self.arm_force_limit,
             ),
             "pd_joint_delta_pos": PDJointPosControllerConfig(
-                self.arm_joint_names,
+                [j.name for j in self.robot.active_joints],
                 lower=-0.1,
                 upper=0.1,
                 stiffness=self.arm_stiffness,

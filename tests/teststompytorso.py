@@ -14,8 +14,8 @@ language_instruction = "move the apple to the right"
 import torch
 
 torch.cuda.empty_cache()
-torch.cuda.reset_peak_memory_stats()
-torch.cuda.reset_accumulated_memory_stats()
+# torch.cuda.reset_peak_memory_stats()
+# torch.cuda.reset_accumulated_memory_stats()
 env = gym.make(
     "StompyPushCube-v2",
     num_envs=1,

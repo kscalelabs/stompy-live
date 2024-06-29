@@ -1,6 +1,6 @@
 """Defines an environment for controlling the Stompy arm."""
 
-from typing import Any
+from typing import Any, Union
 
 import numpy as np
 import torch
@@ -16,21 +16,23 @@ from torch import Tensor
 from transforms3d.euler import euler2quat
 
 from stompy_live.agents.stompyarm.stompyarm import StompyArm
+from stompy_live.agents.stompytorso.stompytorso import StompyTorso
 from stompy_live.utils.scene_builders.table_builder import StompyTableSceneBuilder
 
 
 @register_env("SPushCube-v0", max_episode_steps=50)
 class StompyPushCubeEnv(PushCubeEnv):
-    SUPPORTED_ROBOTS = ["stompy_arm"]
+    SUPPORTED_ROBOTS = ["stompy_arm", "stompy_torso"]
 
-    agent: StompyArm
+    agent: Union[StompyArm, StompyTorso]
 
     # Set some commonly used values
     goal_radius = 0.1
     cube_half_size = 0.02
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:  # noqa: ANN401
-        super().__init__(*args, robot_uids="stompy_arm", **kwargs)
+        print("initializing env")
+        super().__init__(*args, robot_uids="stompy_torso", **kwargs)
 
     @property
     def _default_sensor_configs(self) -> list[CameraConfig]:
@@ -60,7 +62,9 @@ class StompyPushCubeEnv(PushCubeEnv):
     def _load_scene(self, options: dict) -> None:
         # We use a prebuilt scene builder class that automatically loads in a
         # floor and table.
+        print("loading robot")
         self.table_scene = StompyTableSceneBuilder(env=self, robot_init_qpos_noise=self.robot_init_qpos_noise)
+        print("loaded robot")
         self.table_scene.build()
 
         # We then add the cube that we want to push and give it a color and
@@ -143,14 +147,10 @@ class StompyPushCubeEnv(PushCubeEnv):
 
         # reward for moving cube near
         print(self.obj.pose.p[..., :2])
-        obj_to_goal_dist = torch.linalg.norm(
-            self.obj.pose.p[..., :2] - self.goal_region.pose.p[..., :2], axis=1
-        )
+        obj_to_goal_dist = torch.linalg.norm(self.obj.pose.p[..., :2] - self.goal_region.pose.p[..., :2], axis=1)
 
         # reward for gripper near cube
-        gripper_to_cube_dist = torch.linalg.norm(
-            self.obj.pose.p[..., :2] - self.agent.ee.pose.p[..., :2], axis=1
-        )
+        gripper_to_cube_dist = torch.linalg.norm(self.obj.pose.p[..., :2] - self.agent.ee.pose.p[..., :2], axis=1)
 
         print(obj_to_goal_dist)
         print(gripper_to_cube_dist)

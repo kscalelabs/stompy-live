@@ -12,7 +12,6 @@ from stompy_live.envs.stompyarm_env import StompyPushCubeEnv  # noqa: F401
 
 # model = model_client()
 language_instruction = "move the apple to the right"
-
 env = gym.make(
     "SPushCube-v0",
     num_envs=1,
@@ -21,19 +20,23 @@ env = gym.make(
     control_mode="pd_joint_delta_pos",  # there is also "pd_joint_delta_pos", ...
     render_mode="human",
 )
+print("created gym env")
+breakpoint()
 print("Observation space", env.observation_space)
 print("Action space", env.action_space)
 
 obs, _ = env.reset(seed=0)  # reset with a seed for determinism
 done = False
 infinite = False
+breakpoint()
 while not infinite:
     # grpc or websocket
     # action = model.act(obs["image", "qpos", "language_instruction"])
-    action = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-    # action = env.action_space.sample()
+    # action = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    action = env.action_space.sample()
     # print(action)
     obs, reward, terminated, truncated, info = env.step(action)
     done = terminated or truncated
+    breakpoint()
     env.render()  # a display is required to render
 env.close()
