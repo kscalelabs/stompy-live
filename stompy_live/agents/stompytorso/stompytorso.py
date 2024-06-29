@@ -93,6 +93,7 @@ class StompyTorso(BaseAgent):
 
     @property
     def _controller_configs(self) -> dict:
+        print("joint names", [j.name for j in self.robot.active_joints])
         return {
             "pd_joint_vel": PDJointVelControllerConfig(
                 [j.name for j in self.robot.active_joints],
