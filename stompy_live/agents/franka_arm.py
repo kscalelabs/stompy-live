@@ -2,12 +2,7 @@ import numpy as np
 import torch
 from torch import nn
 from torch.distributions import Normal
-
-
-def layer_init(layer, std=np.sqrt(2), bias_const=0.0):
-    torch.nn.init.orthogonal_(layer.weight, std)
-    torch.nn.init.constant_(layer.bias, bias_const)
-    return layer
+from stompy_live.agents.layer_init import layer_init
 
 
 class Agent(nn.Module):
