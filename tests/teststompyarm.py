@@ -20,7 +20,7 @@ env = gym.make(
     control_mode="pd_joint_delta_pos",  # there is also "pd_joint_delta_pos", ...
     render_mode="human",
 )
-print("created gym env")
+print("created gym")
 breakpoint()
 print("Observation space", env.observation_space)
 print("Action space", env.action_space)
