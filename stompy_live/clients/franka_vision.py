@@ -42,7 +42,6 @@ while True:
 
             action_bytes = session.post(args.route, data=obs_bytes).content
             action = torch.load(io.BytesIO(action_bytes))
-            print(action)
 
         obs, reward, terminated, truncated, info = envs.step(action)
 
