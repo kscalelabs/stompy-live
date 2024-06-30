@@ -1,13 +1,7 @@
-import io
-from dataclasses import dataclass
-from pathlib import Path
-from typing import Union
-
-import draccus
 import gymnasium as gym
 import torch
-import uvicorn
 from mani_skill.utils.wrappers.flatten import FlattenActionSpaceWrapper, FlattenRGBDObservationWrapper
+from mani_skill.utils.wrappers.record import RecordEpisode
 
 from stompy_live.agents.franka_arm_vision import Agent
 
@@ -40,3 +34,4 @@ while True:
             done = terminated or truncated
             total_reward += reward
             envs.render()
+        envs = RecordEpisode(envs, output_dir="videos", save_trajectory=False)
