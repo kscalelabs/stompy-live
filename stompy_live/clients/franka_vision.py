@@ -8,8 +8,6 @@ import requests
 import torch
 from mani_skill.utils.wrappers.flatten import FlattenActionSpaceWrapper, FlattenRGBDObservationWrapper
 
-import pickle
-
 # Parse franka API route location from command line arguments
 
 parser = argparse.ArgumentParser(description="Client for Franka API")
