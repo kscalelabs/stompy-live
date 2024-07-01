@@ -27,7 +27,7 @@ def deepcopy_dict(configs: dict) -> dict:
 @register_agent("stompy_torso")
 class StompyTorso(BaseAgent):
     uid = "stompy_torso"
-    urdf_path = f"{get_model_dir()}/torso/assembly_1.urdf"
+    urdf_path = f"{get_model_dir()}/torso_merged_simplified/upper_limb_assembly_5_dof_merged_simplified.urdf"
 
     urdf_config = {
         # "_materials": {
@@ -71,17 +71,11 @@ class StompyTorso(BaseAgent):
     # balance_passive_force = True
     # load_multiple_collisions = True
 
-    arm_joint_names = [
-        "joint_full_arm_5_dof_1_upper_left_arm_1_rmd_x8_90_mock_1_dof_x8",
-        "joint_full_arm_5_dof_1_upper_left_arm_1_rmd_x8_90_mock_2_dof_x8",
-        "joint_full_arm_5_dof_1_upper_left_arm_1_rmd_x4_24_mock_1_dof_x4",
-        "joint_full_arm_5_dof_1_upper_left_arm_1_rmd_x4_24_mock_2_dof_x4",
-        "joint_full_arm_5_dof_1_lower_arm_1_dof_1_rmd_x4_24_mock_2_dof_x4",
-        "joint_full_arm_5_dof_1_lower_arm_1_dof_1_hand_1_rmd_x4_24_mock_1_dof_x4",
-    ]
+    arm_joint_names = []
 
-    ee_link_name = "link_full_arm_5_dof_1_lower_arm_1_dof_1_rmd_x4_24_mock_2_outer_rmd_x4_24_1"
-    tcp_link_name = "link_full_arm_5_dof_1_lower_arm_1_dof_1_hand_1_spur_gear_26_teeth_1"
+    # ee_link_name = "fused_link_full_arm_5_dof_1_lower_arm_1_dof_1_rmd_x4_24_mock_2_outer_rmd_x4_24_1"
+    ee_link_name = "fused_component_full_arm_5_dof_2_lower_arm_1_dof_1_hand_1_slide_2"
+    # tcp_link_name = "fused_link_full_arm_5_dof_1_lower_arm_1_dof_1_hand_1_spur_gear_26_teeth_1"
 
     arm_stiffness = 1e3
     arm_damping = 10
@@ -115,3 +109,4 @@ class StompyTorso(BaseAgent):
 
     def _after_init(self) -> None:
         self.tcp = sapien_utils.get_obj_by_name(self.robot.get_links(), self.ee_link_name)
+        self.ee = sapien_utils.get_obj_by_name(self.robot.get_links(), self.ee_link_name)

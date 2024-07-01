@@ -21,22 +21,21 @@ env = gym.make(
     render_mode="human",
 )
 print("created gym")
-breakpoint()
 print("Observation space", env.observation_space)
 print("Action space", env.action_space)
 
 obs, _ = env.reset(seed=0)  # reset with a seed for determinism
 done = False
 infinite = False
-breakpoint()
 while not infinite:
     # grpc or websocket
     # action = model.act(obs["image", "qpos", "language_instruction"])
     # action = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-    action = env.action_space.sample()
+    # action = env.action_space.sample()
+    """np arrray of size 17 with all 0"""
+    action = np.zeros(17)
     # print(action)
     obs, reward, terminated, truncated, info = env.step(action)
     done = terminated or truncated
-    breakpoint()
     env.render()  # a display is required to render
 env.close()
