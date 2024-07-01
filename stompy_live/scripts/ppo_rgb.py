@@ -45,6 +45,7 @@ python -m mani_skill.trajectory.replay_trajectory \
   --save-video --allow-failure -o "none"
 """
 
+
 @dataclass
 class Args:
     exp_name: Optional[str] = None
@@ -127,10 +128,12 @@ class Args:
     num_iterations: int = 0
     """the number of iterations (computed in runtime)"""
 
+
 def layer_init(layer, std=np.sqrt(2), bias_const=0.0):
     torch.nn.init.orthogonal_(layer.weight, std)
     torch.nn.init.constant_(layer.bias, bias_const)
     return layer
+
 
 class DictArray(object):
     def __init__(self, buffer_shape, element_space, data_dict=None, device=None):
@@ -152,9 +155,7 @@ class DictArray(object):
     def __getitem__(self, index):
         if isinstance(index, str):
             return self.data[index]
-        return {
-            k: v[index] for k, v in self.data.items()
-        }
+        return {k: v[index] for k, v in self.data.items()}
 
     def __setitem__(self, index, value):
         if isinstance(index, str):
@@ -169,13 +170,14 @@ class DictArray(object):
     def reshape(self, shape):
         t = len(self.buffer_shape)
         new_dict = {}
-        for k,v in self.data.items():
+        for k, v in self.data.items():
             if isinstance(v, DictArray):
                 new_dict[k] = v.reshape(shape)
             else:
                 new_dict[k] = v.reshape(shape + v.shape[t:])
-        new_buffer_shape = next(iter(new_dict.values())).shape[:len(shape)]
+        new_buffer_shape = next(iter(new_dict.values())).shape[: len(shape)]
         return DictArray(new_buffer_shape, None, data_dict=new_dict)
+
 
 class NatureCNN(nn.Module):
     def __init__(self, sample_obs):
@@ -185,9 +187,9 @@ class NatureCNN(nn.Module):
 
         self.out_features = 0
         feature_size = 256
-        in_channels=sample_obs["rgb"].shape[-1]
-        image_size=(sample_obs["rgb"].shape[1], sample_obs["rgb"].shape[2])
-        state_size=sample_obs["state"].shape[-1]
+        in_channels = sample_obs["rgb"].shape[-1]
+        image_size = (sample_obs["rgb"].shape[1], sample_obs["rgb"].shape[2])
+        state_size = sample_obs["state"].shape[-1]
 
         # here we use a NatureCNN architecture to process images, but any architecture is permissble here
         cnn = nn.Sequential(
@@ -199,20 +201,16 @@ class NatureCNN(nn.Module):
                 padding=0,
             ),
             nn.ReLU(),
-            nn.Conv2d(
-                in_channels=32, out_channels=64, kernel_size=4, stride=2, padding=0
-            ),
+            nn.Conv2d(in_channels=32, out_channels=64, kernel_size=4, stride=2, padding=0),
             nn.ReLU(),
-            nn.Conv2d(
-                in_channels=64, out_channels=64, kernel_size=3, stride=1, padding=0
-            ),
+            nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, stride=1, padding=0),
             nn.ReLU(),
             nn.Flatten(),
         )
 
         # to easily figure out the dimensions after flattening, we pass a test tensor
         with torch.no_grad():
-            n_flatten = cnn(sample_obs["rgb"].float().permute(0,3,1,2).cpu()).shape[1]
+            n_flatten = cnn(sample_obs["rgb"].float().permute(0, 3, 1, 2).cpu()).shape[1]
             fc = nn.Sequential(nn.Linear(n_flatten, feature_size), nn.ReLU())
         extractors["rgb"] = nn.Sequential(cnn, fc)
         self.out_features += feature_size
@@ -229,10 +227,11 @@ class NatureCNN(nn.Module):
         for key, extractor in self.extractors.items():
             obs = observations[key]
             if key == "rgb":
-                obs = obs.float().permute(0,3,1,2)
+                obs = obs.float().permute(0, 3, 1, 2)
                 obs = obs / 255
             encoded_tensor_list.append(extractor(obs))
         return torch.cat(encoded_tensor_list, dim=1)
+
 
 class Agent(nn.Module):
     def __init__(self, envs, sample_obs):
@@ -248,14 +247,17 @@ class Agent(nn.Module):
         self.actor_mean = nn.Sequential(
             layer_init(nn.Linear(latent_size, 512)),
             nn.ReLU(inplace=True),
-            layer_init(nn.Linear(512, np.prod(envs.unwrapped.single_action_space.shape)), std=0.01*np.sqrt(2)),
+            layer_init(nn.Linear(512, np.prod(envs.unwrapped.single_action_space.shape)), std=0.01 * np.sqrt(2)),
         )
         self.actor_logstd = nn.Parameter(torch.ones(1, np.prod(envs.unwrapped.single_action_space.shape)) * -0.5)
+
     def get_features(self, x):
         return self.feature_net(x)
+
     def get_value(self, x):
         x = self.feature_net(x)
         return self.critic(x)
+
     def get_action(self, x, deterministic=False):
         x = self.feature_net(x)
         action_mean = self.actor_mean(x)
@@ -265,6 +267,7 @@ class Agent(nn.Module):
         action_std = torch.exp(action_logstd)
         probs = Normal(action_mean, action_std)
         return probs.sample()
+
     def get_action_and_value(self, x, action=None):
         x = self.feature_net(x)
         action_mean = self.actor_mean(x)
@@ -335,9 +338,23 @@ if __name__ == "__main__":
             eval_output_dir = f"{os.path.dirname(args.checkpoint)}/test_videos"
         print(f"Saving eval videos to {eval_output_dir}")
         if args.save_train_video_freq is not None:
-            save_video_trigger = lambda x : (x // args.num_steps) % args.save_train_video_freq == 0
-            envs = RecordEpisode(envs, output_dir=f"runs/{run_name}/train_videos", save_trajectory=False, save_video_trigger=save_video_trigger, max_steps_per_video=args.num_steps, video_fps=30)
-        eval_envs = RecordEpisode(eval_envs, output_dir=eval_output_dir, save_trajectory=args.evaluate, trajectory_name="trajectory", max_steps_per_video=args.num_eval_steps, video_fps=30)
+            save_video_trigger = lambda x: (x // args.num_steps) % args.save_train_video_freq == 0
+            envs = RecordEpisode(
+                envs,
+                output_dir=f"runs/{run_name}/train_videos",
+                save_trajectory=False,
+                save_video_trigger=save_video_trigger,
+                max_steps_per_video=args.num_steps,
+                video_fps=30,
+            )
+        eval_envs = RecordEpisode(
+            eval_envs,
+            output_dir=eval_output_dir,
+            save_trajectory=args.evaluate,
+            trajectory_name="trajectory",
+            max_steps_per_video=args.num_eval_steps,
+            video_fps=30,
+        )
     envs = ManiSkillVectorEnv(envs, args.num_envs, ignore_terminations=False, **env_kwargs)
     eval_envs = ManiSkillVectorEnv(eval_envs, args.num_eval_envs, ignore_terminations=False, **env_kwargs)
     assert isinstance(envs.single_action_space, gym.spaces.Box), "only continuous action space is supported"
@@ -360,8 +377,12 @@ if __name__ == "__main__":
     eps_lens = np.zeros(args.num_envs)
     place_rew = torch.zeros(args.num_envs, device=device)
     print(f"####")
-    print(f"args.num_iterations={args.num_iterations} args.num_envs={args.num_envs} args.num_eval_envs={args.num_eval_envs}")
-    print(f"args.minibatch_size={args.minibatch_size} args.batch_size={args.batch_size} args.update_epochs={args.update_epochs}")
+    print(
+        f"args.num_iterations={args.num_iterations} args.num_envs={args.num_envs} args.num_eval_envs={args.num_eval_envs}"
+    )
+    print(
+        f"args.minibatch_size={args.minibatch_size} args.batch_size={args.batch_size} args.update_epochs={args.update_epochs}"
+    )
     print(f"####")
     agent = Agent(envs, sample_obs=next_obs).to(device)
     optimizer = optim.Adam(agent.parameters(), lr=args.learning_rate, eps=1e-5)
@@ -383,7 +404,9 @@ if __name__ == "__main__":
             failures = []
             for _ in range(args.num_eval_steps):
                 with torch.no_grad():
-                    eval_obs, _, eval_terminations, eval_truncations, eval_infos = eval_envs.step(agent.get_action(eval_obs, deterministic=True))
+                    eval_obs, _, eval_terminations, eval_truncations, eval_infos = eval_envs.step(
+                        agent.get_action(eval_obs, deterministic=True)
+                    )
                     if "final_info" in eval_infos:
                         mask = eval_infos["_final_info"]
                         eps_lens.append(eval_infos["final_info"]["elapsed_steps"][mask].cpu().numpy())
@@ -397,11 +420,13 @@ if __name__ == "__main__":
             print(f"Evaluated {args.num_eval_steps * args.num_eval_envs} steps resulting in {len(eps_lens)} episodes")
             if len(successes) > 0:
                 successes = np.concatenate(successes)
-                if writer is not None: writer.add_scalar("charts/eval_success_rate", successes.mean(), global_step)
+                if writer is not None:
+                    writer.add_scalar("charts/eval_success_rate", successes.mean(), global_step)
                 print(f"eval_success_rate={successes.mean()}")
             if len(failures) > 0:
                 failures = np.concatenate(failures)
-                if writer is not None: writer.add_scalar("charts/eval_fail_rate", failures.mean(), global_step)
+                if writer is not None:
+                    writer.add_scalar("charts/eval_fail_rate", failures.mean(), global_step)
                 print(f"eval_fail_rate={failures.mean()}")
 
             print(f"eval_episodic_return={returns.mean()}")
@@ -440,13 +465,21 @@ if __name__ == "__main__":
             if "final_info" in infos:
                 final_info = infos["final_info"]
                 done_mask = infos["_final_info"]
-                episodic_return = final_info['episode']['r'][done_mask].mean().cpu().numpy()
-                writer.add_scalar("charts/success_rate", final_info["success"][done_mask].float().mean().cpu().numpy(), global_step)
+                episodic_return = final_info["episode"]["r"][done_mask].mean().cpu().numpy()
+                writer.add_scalar(
+                    "charts/success_rate", final_info["success"][done_mask].float().mean().cpu().numpy(), global_step
+                )
                 writer.add_scalar("charts/episodic_return", episodic_return, global_step)
-                writer.add_scalar("charts/episodic_length", final_info["elapsed_steps"][done_mask].float().mean().cpu().numpy(), global_step)
+                writer.add_scalar(
+                    "charts/episodic_length",
+                    final_info["elapsed_steps"][done_mask].float().mean().cpu().numpy(),
+                    global_step,
+                )
                 for k in infos["final_observation"]:
                     infos["final_observation"][k] = infos["final_observation"][k][done_mask]
-                final_values[step, torch.arange(args.num_envs, device=device)[done_mask]] = agent.get_value(infos["final_observation"]).view(-1)
+                final_values[step, torch.arange(args.num_envs, device=device)[done_mask]] = agent.get_value(
+                    infos["final_observation"]
+                ).view(-1)
         rollout_time = time.time() - rollout_time
         # bootstrap value according to termination and truncation
         with torch.no_grad():
@@ -460,7 +493,7 @@ if __name__ == "__main__":
                 else:
                     next_not_done = 1.0 - dones[t + 1]
                     nextvalues = values[t + 1]
-                real_next_values = next_not_done * nextvalues + final_values[t] # t instead of t+1
+                real_next_values = next_not_done * nextvalues + final_values[t]  # t instead of t+1
                 # next_not_done means nextvalues is computed from the correct next_obs
                 # if next_not_done is 1, final_values is always 0
                 # if next_not_done is 0, then use final_values, which is computed according to bootstrap_at_done
@@ -473,10 +506,10 @@ if __name__ == "__main__":
                     lambda^3      *(  -V(s_t)  + r_t + gamma * r_{t+1} + gamma^2 * r_{t+2} + gamma^3 * r_{t+3}
                     We then normalize it by the sum of the lambda^i (instead of 1-lambda)
                     """
-                    if t == args.num_steps - 1: # initialize
-                        lam_coef_sum = 0.
-                        reward_term_sum = 0. # the sum of the second term
-                        value_term_sum = 0. # the sum of the third term
+                    if t == args.num_steps - 1:  # initialize
+                        lam_coef_sum = 0.0
+                        reward_term_sum = 0.0  # the sum of the second term
+                        value_term_sum = 0.0  # the sum of the third term
                     lam_coef_sum = lam_coef_sum * next_not_done
                     reward_term_sum = reward_term_sum * next_not_done
                     value_term_sum = value_term_sum * next_not_done
@@ -488,7 +521,9 @@ if __name__ == "__main__":
                     advantages[t] = (reward_term_sum + value_term_sum) / lam_coef_sum - values[t]
                 else:
                     delta = rewards[t] + args.gamma * real_next_values - values[t]
-                    advantages[t] = lastgaelam = delta + args.gamma * args.gae_lambda * next_not_done * lastgaelam # Here actually we should use next_not_terminated, but we don't have lastgamlam if terminated
+                    advantages[t] = lastgaelam = (
+                        delta + args.gamma * args.gae_lambda * next_not_done * lastgaelam
+                    )  # Here actually we should use next_not_terminated, but we don't have lastgamlam if terminated
             returns = advantages + values
 
         # flatten the batch
@@ -581,4 +616,5 @@ if __name__ == "__main__":
         print(f"model saved to {model_path}")
 
     envs.close()
-    if writer is not None: writer.close()
+    if writer is not None:
+        writer.close()

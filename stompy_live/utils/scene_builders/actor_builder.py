@@ -4,6 +4,8 @@ from mani_skill.envs.scene import ManiSkillScene
 from mani_skill.utils.building.actor_builder import ActorBuilder
 from mani_skill.utils.building.actors.common import *
 
+from stompy_live.utils.scene_builders.ycb_builder import get_ycb_builder
+
 
 def get_actor_builder(
     scene: ManiSkillScene, id: str, add_collision: bool = True, add_visual: bool = True, scale: float = 1.0
@@ -25,8 +27,6 @@ def get_actor_builder(
     actor_id = ":".join(splits[1:])
 
     if dataset_source == "ycb":
-        from stompy_live.utils.scene_builders.ycb_builder import get_ycb_builder
-
         builder = get_ycb_builder(
             scene=scene, id=actor_id, add_collision=add_collision, add_visual=add_visual, input_scale=scale
         )
