@@ -1,12 +1,17 @@
 # requirements.txt
 
+accelerate
+flash_attn
 mani_skill
 torch
 torchvision
 torchaudio
 tyro
 tensorboard
+transformers
+timm
 
 fastapi
 draccus
 uvicorn
+json_numpy

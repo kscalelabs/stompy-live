@@ -10,7 +10,7 @@ import uvicorn
 from fastapi import FastAPI, Request, Response
 from mani_skill.utils.wrappers.flatten import FlattenActionSpaceWrapper
 
-from stompy_live.agents.franka_arm import Agent
+from stompy_live.agents.franka.franka_arm import Agent
 
 
 # === Server Interface ===
