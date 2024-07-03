@@ -27,6 +27,7 @@ session = requests.Session()
 
 while True:
     obs, info = envs.reset()
+    print(obs)
     done = False
     total_reward = 0
 

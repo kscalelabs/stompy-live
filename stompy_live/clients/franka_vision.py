@@ -16,7 +16,7 @@ args = parser.parse_args()
 
 # Load the model
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-env_kwargs = dict(obs_mode="rgbd", control_mode="pd_joint_delta_pos", render_mode="rgb_array", sim_backend="gpu")
+env_kwargs = dict(obs_mode="rgbd", control_mode="pd_joint_delta_pos", render_mode="human", sim_backend="gpu")
 envs = gym.make("PushCube-v1", **env_kwargs)
 envs = FlattenRGBDObservationWrapper(envs, rgb_only=True)
 if isinstance(envs.action_space, gym.spaces.Dict):
@@ -40,7 +40,6 @@ while True:
 
             action_bytes = session.post(args.route, data=obs_bytes).content
             action = torch.load(io.BytesIO(action_bytes))
-            print(action)
 
         obs, reward, terminated, truncated, info = envs.step(action)
 
