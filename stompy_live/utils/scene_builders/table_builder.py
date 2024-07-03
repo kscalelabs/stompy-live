@@ -21,37 +21,10 @@ class StompyTableSceneBuilder(TableSceneBuilder):
             self.env.agent.robot.set_pose(sapien.Pose(p=[-0.2, -0.0, 0], q=euler2quat(-3 * np.pi / 2, 0, -np.pi / 2)))
 
         elif self.env.robot_uids == "stompy_torso":
-<<<<<<< HEAD
-            qpos = np.array(
-                [
-                    -0.129,
-                    2.590,
-                    -1.786,
-                    1.449,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    -0.129,
-                    2.590,
-                    -1.786,
-                    1.449,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                ]
-            )
-            # qpos = np.array([0.0, 0.0, 0.0])
-            self.env.agent.reset(qpos)
-            self.env.agent.robot.set_pose(sapien.Pose(p=[-0.3, 0, 0], q=euler2quat(3 * np.pi / 2, 0, np.pi / 2)))
-=======
             qpos = np.array([-0.129, 2.590, -1.786, 1.449, 0.0, 0.0, 0.0, 0.0])
             # qpos = np.array([0.0, 0.0, 0.0])
             self.env.agent.reset(qpos)
             self.env.agent.robot.set_pose(sapien.Pose(p=[-0.3, 0, 0], q=euler2quat(-3 * np.pi / 2, 0, -np.pi / 2)))
->>>>>>> franka_arm_vision
 
         else:
             raise KeyError(f"Unexpected robot UID: {self.env.robot_uids}")
