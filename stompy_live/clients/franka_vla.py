@@ -4,7 +4,6 @@ import time, queue
 import requests
 import gymnasium as gym
 from mani_skill.utils.wrappers.flatten import FlattenActionSpaceWrapper, FlattenRGBDObservationWrapper
-from mani_skill.utils.wrappers.record import RecordEpisode
 import torch
 import stompy_live.envs.franka_push_cube
 
@@ -30,8 +29,6 @@ assert isinstance(envs.single_action_space, gym.spaces.Box), "only continuous ac
 irc_thread = Thread(target=init)
 irc_thread.daemon = True  # This allows the thread to exit when the main program does
 irc_thread.start()
-
-envs = RecordEpisode(envs, output_dir="videos", save_trajectory=False)
 
 while True:
     obs, info = envs.reset()
