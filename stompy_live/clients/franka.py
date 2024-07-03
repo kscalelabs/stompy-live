@@ -8,6 +8,7 @@ import requests
 import torch
 from mani_skill.utils.wrappers.flatten import FlattenActionSpaceWrapper
 
+
 # Parse franka API route location from command line arguments
 
 parser = argparse.ArgumentParser(description="Client for Franka API")
@@ -16,7 +17,7 @@ args = parser.parse_args()
 
 # Load the model
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-env_kwargs = dict(obs_mode="state", control_mode="pd_joint_delta_pos", render_mode="human", sim_backend="gpu")
+env_kwargs = dict(obs_mode="state", control_mode="pd_ee_delta_pose", render_mode="human", sim_backend="gpu")
 envs = gym.make("PushCube-v1", **env_kwargs)
 if isinstance(envs.action_space, gym.spaces.Dict):
     envs = FlattenActionSpaceWrapper(envs)

@@ -24,6 +24,7 @@ from torch.utils.tensorboard import SummaryWriter
 from stompy_live.agents.stompy.stompy import Stompy  # noqa: F401
 from stompy_live.envs.stompy_env import StompyEnv  # noqa: F401
 from stompy_live.envs.stompyarm_env import StompyPushCubeEnv  # noqa: F401
+import stompy_live.envs.franka_push_cube # noqa: F401
 
 """
 Running PPO on PickCube-v1 from maniskill for testing
@@ -228,7 +229,7 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() and args.cuda else "cpu")
 
     # env setup
-    env_kwargs = dict(obs_mode="state", control_mode="pd_joint_delta_pos", render_mode="rgb_array", sim_backend="gpu")
+    env_kwargs = dict(obs_mode="state", control_mode="pd_ee_delta_pose", render_mode="rgb_array", sim_backend="gpu")
     envs = gym.make(args.env_id, num_envs=args.num_envs if not args.evaluate else 1, **env_kwargs)
     eval_envs = gym.make(args.env_id, num_envs=args.num_eval_envs, **env_kwargs)
     if isinstance(envs.action_space, gym.spaces.Dict):
@@ -237,14 +238,14 @@ if __name__ == "__main__":
     if args.capture_video:
         eval_output_dir = f"runs/{run_name}/videos"
         if args.evaluate:
-            eval_output_dir = f"{os.path.dirname(args.checkpoint)}/test_videos"
+            eval_output_dir = "eval_videos"
         print(f"Saving eval videos to {eval_output_dir}")
         if args.save_train_video_freq is not None:
             save_video_trigger = lambda x: (x // args.num_steps) % args.save_train_video_freq == 0
             envs = RecordEpisode(
                 envs,
                 output_dir=f"runs/{run_name}/train_videos",
-                save_trajectory=False,
+                save_trajectory=True,
                 save_video_trigger=save_video_trigger,
                 max_steps_per_video=args.num_steps,
                 video_fps=30,
@@ -255,7 +256,7 @@ if __name__ == "__main__":
             save_trajectory=args.evaluate,
             trajectory_name="trajectory",
             max_steps_per_video=args.num_eval_steps,
-            video_fps=30,
+            video_fps=15,
         )
     envs = ManiSkillVectorEnv(envs, args.num_envs, ignore_terminations=not args.partial_reset, **env_kwargs)
     eval_envs = ManiSkillVectorEnv(

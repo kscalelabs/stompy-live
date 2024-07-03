@@ -11,6 +11,7 @@ from fastapi import FastAPI, Request, Response
 from mani_skill.utils.wrappers.flatten import FlattenActionSpaceWrapper
 
 from stompy_live.agents.franka.franka_arm import Agent
+import stompy_live.envs.franka_push_cube # noqa: F401
 
 
 # === Server Interface ===
@@ -19,8 +20,8 @@ class FrankaServer:
         self.model_path = model_path
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        env_kwargs = dict(obs_mode="state", control_mode="pd_joint_delta_pos", sim_backend="gpu")
-        envs = gym.make("PushCube-v1", **env_kwargs)
+        env_kwargs = dict(obs_mode="state", control_mode="pd_ee_delta_pose", sim_backend="gpu")
+        envs = gym.make("New-PushCube-v1", **env_kwargs)
         if isinstance(envs.action_space, gym.spaces.Dict):
             envs = FlattenActionSpaceWrapper(envs)
         assert isinstance(envs.single_action_space, gym.spaces.Box), "only continuous action space is supported"
@@ -52,7 +53,7 @@ class FrankaServer:
 @dataclass
 class DeployConfig:
     # fmt: off
-    model_path: Union[str, Path] = "model.pt"               # Where the model weights are stored
+    model_path: Union[str, Path] = "runs/New-PushCube-v1__ppo__1__1720032494/final_ckpt.pt"               # Where the model weights are stored
 
     # Server Configuration
     host: str = "0.0.0.0"                                               # Host IP Address
