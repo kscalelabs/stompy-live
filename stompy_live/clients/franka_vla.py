@@ -5,7 +5,7 @@ import requests
 import gymnasium as gym
 from mani_skill.utils.wrappers.flatten import FlattenActionSpaceWrapper, FlattenRGBDObservationWrapper
 import torch
-import stompy_live.envs.franka_push_cube
+import stompy_live.envs.franka_push_cube # noqa: F401
 
 import json_numpy
 json_numpy.patch()
