@@ -38,6 +38,14 @@ while True:
         print(message)
         while not done:
             image = obs["rgb"][0].cpu().numpy()
+            now = time.time()
+
+            action = session.post(
+                "http://localhost:8000/act",
+                json={"image": image, "instruction": message, "unnorm_key": "toto"},
+            ).json()
+
+            print("Inference time (ms): ", time.time() - now)
 
             # For some reason pygame expects the array row/cols to be switched
             transposed_image = np.transpose(image, (1, 0, 2))
@@ -47,10 +55,6 @@ while True:
             window.blit(surface, (0, 0))
             
             pygame.display.update()
-            action = session.post(
-                "http://localhost:8000/act",
-                json={"image": image, "instruction": message, "unnorm_key": "toto"},
-            ).json()
 
             obs, reward, terminated, truncated, info = envs.step(torch.tensor(action, dtype=torch.float))
 
