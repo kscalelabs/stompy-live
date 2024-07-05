@@ -23,5 +23,8 @@ out*/
 #Checkpoints, h5 files, recordings
 *.pt
 *.mp4
+*.h5
+*.json
+*.zip
 runs/
 stompy_live/assets/stompyarm/

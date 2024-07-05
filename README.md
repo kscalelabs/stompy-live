@@ -22,6 +22,9 @@ python -m tests.parallelmaniskilltest
 python -m tests.test_env
 ```
 
+## Fine-tuning VLA
+Modify data_scripts.datasets to load data properly, and run data_scripts.finetune
+
 ## Environment variables
 
 - `STOMPYLIVE_TOKEN`: get from https://twitchapps.com/tmi/
