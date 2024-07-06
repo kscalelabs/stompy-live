@@ -18,38 +18,47 @@ from prismatic.vla.datasets.rlds.utils.data_utils import NormalizationType
 
 import os
 import json
+import h5py
+from preprocess_data import load_steps
+import random
+from tqdm import tqdm
 
 # HuggingFace Default / LLaMa-2 IGNORE_INDEX (for labels)
 IGNORE_INDEX = -100
 
 # def rescale()
 
-def get_steps(file_path):
-    res = [] # Sequence of steps: {image: 224x224x3, action: 7d-vector}
+# def get_steps(file_path):
+#     res = [] # Sequence of steps: {image: 224x224x3, action: 7d-vector}
 
-    print("Reading json files...")
-    for filename in os.listdir(file_path):
-        json_file_path = os.path.join(file_path, filename)
+#     print("Reading json files...")
+#     for filename in tqdm(os.listdir(file_path)):
+#         json_file_path = os.path.join(file_path, filename)
         
-        if "episode" in filename:
-            # print(filename)
+#         if "episode" in filename:
+#             # print(filename)
             
-            with open(json_file_path, 'r') as file:
-                cur_episode = json.load(file)
+#             with open(json_file_path, 'r') as file:
+#                 cur_episode = json.load(file)
             
-            # rescaled_image = cv2.resize(image, size, interpolation=cv2.INTER_AREA)
-            for episode_step in cur_episode:                
-                res.append({
-                    "action": episode_step["action"],
-                    "image": episode_step["image"]})
+#             # rescaled_image = cv2.resize(image, size, interpolation=cv2.INTER_AREA)
+#             for episode_step in cur_episode:                
+#                 res.append({
+#                     "action": episode_step["action"],
+#                     "image": episode_step["image"]})
                 
-        # break
+#         break
     
-    print("Done", len(res), "number of samples")
+#     print("Done", len(res), "number of samples")
     
-    return res
+#     return res
 
-get_steps("/ephemeral/users/tgao/data/stompy-live/data/data")
+def get_steps(file_path):
+    print("Loading data...")
+    images, actions = load_steps(file_path)
+    print("Done loading")
+    print(images.shape, actions.shape)
+    return images, actions
 
 class PushCubeDataset(Dataset):
     def __init__(
@@ -58,14 +67,26 @@ class PushCubeDataset(Dataset):
         base_tokenizer: PreTrainedTokenizerBase,
         image_transform: ImageTransform,
         prompt_builder_fn: Type[PromptBuilder],
+        data_path: str
     ) -> None:
         self.action_tokenizer = action_tokenizer
         self.base_tokenizer = base_tokenizer
         self.image_transform = image_transform
         self.prompt_builder_fn = prompt_builder_fn
+        self.instruction = "push the blue cube to the striped target"
         
-        self.steps = get_steps("/ephemeral/users/tgao/data/stompy-live/data/data")
-        self.LEN = len(self.steps)
+        print(f"What action should the robot take to {self.instruction}?")
+        
+        # self.images, self.actions = get_steps("/ephemeral/users/tgao/data/stompy-live/data/data")
+        # self.LEN = len(self.steps)
+        
+        print("Path to Data", data_path)
+        
+        self.images, self.actions = get_steps(data_path)
+        self.LEN = self.images.shape[0]
+        numbers = list(range(self.LEN))
+        random.shuffle(numbers)
+        self.permutation = numbers
         
         # Note =>> We expect the dataset to store statistics for action de-normalization. Specifically, we store the
         # per-dimension 1st and 99th action quantile. The values below correspond to "no normalization" for simplicity.
@@ -79,19 +100,23 @@ class PushCubeDataset(Dataset):
         return self.LEN
 
     def __getitem__(self, idx):
-        cur_info = self.steps[idx]
+        idx = self.permutation[idx]
+        
+        # cur_info = self.steps[idx]
+        cur_image = self.images[idx]
+        cur_action = self.actions[idx]
         
         # image = Image.fromarray(np.asarray(np.random.rand(224, 224, 3) * 255.0, dtype=np.uint8))
         # action = np.asarray(np.random.rand(7), dtype=np.float32)
         
         # print(cur_info["image"].shape)
         
-        image = np.asarray(cur_info["image"]).astype(np.uint8)
+        image = np.asarray(cur_image).astype(np.uint8)
         image = Image.fromarray(image)
         
-        action = np.asarray(cur_info["action"])
+        action = np.asarray(cur_action)
                 
-        instruction = "push the blue cube to the striped target"
+        instruction = self.instruction
 
         # Add instruction to VLA prompt
         prompt_builder = self.prompt_builder_fn("openvla")
