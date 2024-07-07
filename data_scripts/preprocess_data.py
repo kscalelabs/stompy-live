@@ -33,8 +33,8 @@ def save_steps(file_path, save_dir):
     
 def load_steps(file_path):
     with h5py.File(file_path, 'r') as hdf:
-        # images = hdf['images'][:]
-        images = hdf['masked_images'][:]
+        images = hdf['images'][:]
+        # images = hdf['masked_images'][:]
         
         actions = hdf['actions'][:]
         
@@ -43,8 +43,8 @@ def load_steps(file_path):
 
 
 if __name__ == '__main__':
-    PATH = '/ephemeral/users/tgao/data/cube_step_angles_brown_table.h5'
-    save_steps('/ephemeral/users/tgao/data', PATH)
+    PATH = '/ephemeral/users/tgao/val_data/brown_table_val.h5'
+    save_steps('/ephemeral/users/tgao/val_data', PATH)
     
     images, actions = load_steps(PATH)
     print(images.shape, actions.shape)

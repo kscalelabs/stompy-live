@@ -42,16 +42,47 @@ def load_steps(file_path):
 
 from PIL import Image
 
+def create_image_grid(images, rows, cols, thumbnail_size=(100, 100)):
+    # Calculate the grid size
+    grid_width = cols * thumbnail_size[0]
+    grid_height = rows * thumbnail_size[1]
+    grid_image = Image.new('RGB', (grid_width, grid_height))
+
+    # Resize images and paste them into the grid
+    index = 0
+    for image in images:
+        
+        image = np.asarray(image).astype(np.uint8)
+        image = Image.fromarray(image)
+    
+        if index >= rows * cols:
+            break  # Stop if we have filled the grid
+        # Resize the image
+        img = image.resize(thumbnail_size)
+        # Calculate the position to paste
+        x_offset = (index % cols) * thumbnail_size[0]
+        y_offset = (index // cols) * thumbnail_size[1]
+        grid_image.paste(img, (x_offset, y_offset))
+        index += 1
+
+    return grid_image
+
 if __name__ == '__main__':
-    PATH = '/ephemeral/users/tgao/data/cube_with_masked_images.h5'
+    # PATH = '/ephemeral/users/tgao/data/cube_with_masked_images_v1.h5'
+    PATH = '/ephemeral/users/tgao/data/cube_step_angles_brown_table.h5'
+    
     # save_steps('/ephemeral/users/tgao/data', PATH)
     
     images, actions = load_steps(PATH)
     
-    image_to_display = images[0]
+    image = create_image_grid(images, 4, 5)
+    image.save("example_grid.png")
     
-    image = np.asarray(image_to_display).astype(np.uint8)
-    image = Image.fromarray(image)
+    # image_to_display = images[]
+    # # image_to_display = images[420]
     
-    image.save("example.png")
+    # image = np.asarray(image_to_display).astype(np.uint8)
+    # image = Image.fromarray(image)
+    
+    # image.save("example.png")
         

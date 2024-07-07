@@ -2,7 +2,12 @@ from GroundingDINOSAM import *
 import h5py
 from tqdm import tqdm
 
-def get_mask_from_image(img : Image.Image, labels = ["a robot", "a blue block", "a striped target"], threshold = 0.3):
+file_path = '/ephemeral/users/tgao/data/cube_step_angles_brown_table.h5'
+output_path = '/ephemeral/users/tgao/data/cube_with_masked_images_v1.h5'
+labels = ["a white and gray robot", "a blue block", "a red and white target"]
+threshold = 0.4
+
+def get_mask_from_image(img : Image.Image):
 
     detector_id = "IDEA-Research/grounding-dino-tiny"
     segmenter_id = "facebook/sam-vit-base"
@@ -26,7 +31,7 @@ def load_steps(file_path):
         
         return (images, actions)
     
-def convert_data(file_path, output_path):
+def convert_data():
     images, actions = load_steps(file_path)
     res_h5 = []
     
@@ -43,6 +48,5 @@ def convert_data(file_path, output_path):
         
 
 if __name__ == '__main__':
-    convert_data('/ephemeral/users/tgao/data/cube_step_angles_brown_table.h5', 
-                 '/ephemeral/users/tgao/data/cube_with_masked_images.h5')
+    convert_data()
         

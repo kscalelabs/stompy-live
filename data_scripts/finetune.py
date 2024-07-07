@@ -69,20 +69,13 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 @dataclass
 class FinetuneConfig:
-    data_path = '/ephemeral/users/tgao/data/cube_with_masked_images.h5' # Path to h5 file
-    
+    data_path = '/ephemeral/users/tgao/data/cube_step_angles_brown_table.h5' # Path to h5 file
     # fmt: off
-    vla_path: str = "openvla/openvla-7b"
-    # vla_path: str = "/ephemeral/users/tgao/model_angles/openvla-7b+PushCubeDataset+b16+lr-2e-05cube_step_angles_brown_table"
-    #no brown table :
-    # vla_path: str = "/ephemeral/users/tgao/model_angles/openvla-7b+PushCubeDataset+b16+lr-2e-05cube_step_angles+lora-r32+dropout-0.0" 
-    
-    
-    # Directory Paths
-    # data_root_dir: Path = Path("/ephemeral/users/tgao/data/open-x-embodiment")        # Path to Open-X dataset directory
-    dataset_name: str = "PushCubeDataset"                                # Name of fine-tuning dataset (e.g., `droid_wipe`)
-    run_root_dir: Path = Path("/ephemeral/users/tgao/model_masked/")                               # Path to directory to store logs & checkpoints
-    adapter_tmp_dir: Path = Path("/ephemeral/users/tgao/adapter-tmp")                     # Temporary directory for LoRA weights before fusing
+    # vla_path: str = "openvla/openvla-7b"
+    vla_path: str = "/ephemeral/users/tgao/model_angles/openvla-7b+PushCubeDataset+b16+lr-2e-05cube_step_angles+lora-r32+dropout-0.0+PushCubeDataset+b16+lr-2e-05cube_step_angles_brown_table+lora-r32+dropout-0.0"
+    dataset_name: str = "PushCubeDataset"
+    run_root_dir: Path = Path("/ephemeral/users/tgao/model_angles")                               # Path to directory to store logs & checkpoints
+    adapter_tmp_dir: Path = Path("/ephemeral/users/tgao/adapter-tmp")                    # Temporary directory for LoRA weights before fusing
 
     # Fine-tuning Parameters
     batch_size: int = 16                                            # Fine-tuning batch size
@@ -118,9 +111,8 @@ def finetune(cfg: FinetuneConfig) -> None:
     torch.cuda.empty_cache()
     
     # dist.init_process_group(backend='nccl')  # or 'gloo' if you're not using GPUs
-    
     # device_id = int(os.environ['LOCAL_RANK'])
-    # torch.cuda.set_device(device_id)
+    # torch.cuda.set_device(device_id) <-- use torchrun
     
     # Configure Unique Experiment ID & Log Directory
     # exp_id = (
@@ -244,6 +236,8 @@ def finetune(cfg: FinetuneConfig) -> None:
     recent_action_accuracies = deque(maxlen=cfg.grad_accumulation_steps)
     recent_l1_losses = deque(maxlen=cfg.grad_accumulation_steps)
 
+    wandb_prev_idx = 0
+    
     for epoch in range(4):
         print(f"Starting Epoch {epoch}")
         
@@ -253,6 +247,8 @@ def finetune(cfg: FinetuneConfig) -> None:
         with tqdm.tqdm(total=cfg.max_steps, leave=True) as progress:
             vla.train()
             optimizer.zero_grad()
+            
+            wandb_idx = 0
             for batch_idx, batch in enumerate(dataloader):
                 with torch.autocast("cuda", dtype=torch.bfloat16):
                     output: CausalLMOutputWithPast = vla(
@@ -295,6 +291,7 @@ def finetune(cfg: FinetuneConfig) -> None:
 
                 # Compute gradient step index
                 gradient_step_idx = batch_idx // cfg.grad_accumulation_steps
+                wandb_idx = gradient_step_idx
 
                 # Compute smoothened train metrics
                 #   =>> Equal to current step metrics when not using gradient accumulation
@@ -306,7 +303,7 @@ def finetune(cfg: FinetuneConfig) -> None:
                 # Push Metrics to W&B (every 10 gradient steps)
                 if distributed_state.is_main_process and gradient_step_idx % 10 == 0:
                     wandb.log(
-                        {"train_loss": smoothened_loss, "action_accuracy": smoothened_action_accuracy, "l1_loss": smoothened_l1_loss}, step=gradient_step_idx
+                        {"train_loss": smoothened_loss, "action_accuracy": smoothened_action_accuracy, "l1_loss": smoothened_l1_loss}, step= wandb_prev_idx + gradient_step_idx
                     )
 
                 # Optimizer Step
@@ -347,6 +344,8 @@ def finetune(cfg: FinetuneConfig) -> None:
 
                     # Block on Main Process Checkpointing
                     dist.barrier()
+
+            wandb_prev_idx = wandb_idx
                     
     
     if cfg.use_lora:

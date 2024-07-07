@@ -11,6 +11,7 @@ import plotly.express as px
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 from transformers import AutoModelForMaskGeneration, AutoProcessor, pipeline
+import h5py
 
 @dataclass
 class BoundingBox:
@@ -39,35 +40,10 @@ class DetectionResult:
                                    xmax=detection_dict['box']['xmax'],
                                    ymax=detection_dict['box']['ymax']))
         
-        
-def annotate(image: Union[Image.Image, np.ndarray], detection_results: List[DetectionResult]) -> np.ndarray:    
-    if isinstance(image, Image.Image):
-        print("IS RBG" * 90)
-        image = np.array(image.convert("RGB"))
-    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-
-    # Create an empty combined mask with the same dimensions as the image
-    combined_mask = np.zeros((image.shape[0], image.shape[1]), dtype=np.bool_)
-
-    for detection in detection_results:
-        mask = detection.mask
-        if mask is not None:
-            # Resize mask to match the image size
-            mask_resized = cv2.resize(mask, (image.shape[1], image.shape[0]), interpolation=cv2.INTER_NEAREST)
-            # Combine masks using a logical "OR"
-            combined_mask = np.logical_or(combined_mask, mask_resized > 0)
-
-    # Create an output image with the same dimensions as the original, initialized to be completely transparent or black
-    output_image = np.zeros_like(image, dtype=np.uint8)
-
-    # Use the combined mask to copy pixels from the original image to the output image
-    output_image[combined_mask] = image[combined_mask]
-
-    return cv2.cvtColor(output_image, cv2.COLOR_BGR2RGB)
 
 def annotate_numpy(image: Union[Image.Image, np.ndarray], detection_results: List[DetectionResult]) -> np.ndarray:    
     if isinstance(image, Image.Image):
-        print("IS RBG" * 90)
+        print("Annote is being fed in Image.Image" * 10)
         image = np.array(image.convert("RGB"))
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
@@ -90,33 +66,33 @@ def annotate_numpy(image: Union[Image.Image, np.ndarray], detection_results: Lis
 
     return output_image
 
-# def annotate(image: Union[Image.Image, np.ndarray], detection_results: List[DetectionResult]) -> np.ndarray:
-#     # Convert PIL Image to OpenCV format
-#     image_cv2 = np.array(image) if isinstance(image, Image.Image) else image
-#     image_cv2 = cv2.cvtColor(image_cv2, cv2.COLOR_RGB2BGR)
+def annotate(image: Union[Image.Image, np.ndarray], detection_results: List[DetectionResult]) -> np.ndarray:
+    # Convert PIL Image to OpenCV format
+    image_cv2 = np.array(image) if isinstance(image, Image.Image) else image
+    image_cv2 = cv2.cvtColor(image_cv2, cv2.COLOR_RGB2BGR)
 
-#     # Iterate over detections and add bounding boxes and masks
-#     for detection in detection_results:
-#         label = detection.label
-#         score = detection.score
-#         box = detection.box
-#         mask = detection.mask
+    # Iterate over detections and add bounding boxes and masks
+    for detection in detection_results:
+        label = detection.label
+        score = detection.score
+        box = detection.box
+        mask = detection.mask
 
-#         # Sample a random color for each detection
-#         color = np.random.randint(0, 256, size=3)
+        # Sample a random color for each detection
+        color = np.random.randint(0, 256, size=3)
 
-#         # Draw bounding box
-#         cv2.rectangle(image_cv2, (box.xmin, box.ymin), (box.xmax, box.ymax), color.tolist(), 2)
-#         cv2.putText(image_cv2, f'{label}: {score:.2f}', (box.xmin, box.ymin - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color.tolist(), 2)
+        # Draw bounding box
+        cv2.rectangle(image_cv2, (box.xmin, box.ymin), (box.xmax, box.ymax), color.tolist(), 2)
+        cv2.putText(image_cv2, f'{label}: {score:.2f}', (box.xmin, box.ymin - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color.tolist(), 2)
 
-#         # If mask is available, apply it
-#         if mask is not None:
-#             # Convert mask to uint8
-#             mask_uint8 = (mask * 255).astype(np.uint8)
-#             contours, _ = cv2.findContours(mask_uint8, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-#             cv2.drawContours(image_cv2, contours, -1, color.tolist(), 2)
+        # If mask is available, apply it
+        if mask is not None:
+            # Convert mask to uint8
+            mask_uint8 = (mask * 255).astype(np.uint8)
+            contours, _ = cv2.findContours(mask_uint8, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            cv2.drawContours(image_cv2, contours, -1, color.tolist(), 2)
 
-#     return cv2.cvtColor(image_cv2, cv2.COLOR_BGR2RGB)
+    return cv2.cvtColor(image_cv2, cv2.COLOR_BGR2RGB)
 
 import matplotlib
 matplotlib.use('Agg')
@@ -329,10 +305,14 @@ def detect(
     threshold: float = 0.3,
     detector_id: Optional[str] = None
 ) -> List[Dict[str, Any]]:
+    
+    # START = time.time()
+    
     """
     Use Grounding DINO to detect a set of labels in an image in a zero-shot fashion.
     """
     device = "cuda" if torch.cuda.is_available() else "cpu"
+    
     detector_id = detector_id if detector_id is not None else "IDEA-Research/grounding-dino-tiny"
     object_detector = pipeline(model=detector_id, task="zero-shot-object-detection", device=device)
 
@@ -340,6 +320,8 @@ def detect(
 
     results = object_detector(image,  candidate_labels=labels, threshold=threshold)
     results = [DetectionResult.from_dict(result) for result in results]
+
+    # print("DETECT", time.time() - START)
 
     return results
 
@@ -352,6 +334,8 @@ def segment(
     """
     Use Segment Anything (SAM) to generate masks given an image + a set of bounding boxes.
     """
+    # START = time.time()
+    
     device = "cuda" if torch.cuda.is_available() else "cpu"
     segmenter_id = segmenter_id if segmenter_id is not None else "facebook/sam-vit-base"
 
@@ -372,6 +356,9 @@ def segment(
 
     for detection_result, mask in zip(detection_results, masks):
         detection_result.mask = mask
+        
+        
+    # print("SEGMENT", time.time() - START)
 
     return detection_results
 
@@ -391,16 +378,31 @@ def grounded_segmentation(
 
     return np.array(image), detections
 
+def load_steps(file_path):
+    with h5py.File(file_path, 'r') as hdf:
+        images = hdf['images'][:]
+        actions = hdf['actions'][:]
+        
+        return (images, actions)
+
 if __name__ == '__main__':
-    image_url = "https://i.ibb.co/d7rpGPZ/Screenshot-2024-07-06-at-12-01-18-PM.png"
-    labels = ["a robot", "a blue block", "a striped target"]
-    threshold = 0.3
+    # image_url = "https://i.ibb.co/d7rpGPZ/Screenshot-2024-07-06-at-12-01-18-PM.png"
+    
+    images, actions = load_steps('/ephemeral/users/tgao/data/cube_step_angles_brown_table.h5')
+    
+    test_image = images[8]
+    test_image = np.asarray(test_image).astype(np.uint8)
+    test_image = Image.fromarray(test_image)
+    
+    labels = ["a white and gray robot", "a blue block", "a red and white target"]
+    threshold = 0.4
 
     detector_id = "IDEA-Research/grounding-dino-tiny"
     segmenter_id = "facebook/sam-vit-base"
 
     image_array, detections = grounded_segmentation(
-        image=image_url,
+        # image=image_url,
+        image = test_image,
         labels=labels,
         threshold=threshold,
         polygon_refinement=True,
@@ -408,8 +410,5 @@ if __name__ == '__main__':
         segmenter_id=segmenter_id
     )
 
-    plot_detections(image_array, detections, "cute_cats.png")
-    
-    
-    
+    plot_detections(image_array, detections, "test_image.png")
     

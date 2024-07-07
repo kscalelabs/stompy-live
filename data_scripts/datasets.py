@@ -19,7 +19,6 @@ from prismatic.vla.datasets.rlds.utils.data_utils import NormalizationType
 import os
 import json
 import h5py
-from preprocess_data import load_steps
 import random
 from tqdm import tqdm
 
@@ -53,6 +52,15 @@ IGNORE_INDEX = -100
     
 #     return res
 
+def load_steps(file_path):
+    with h5py.File(file_path, 'r') as hdf:
+        images = hdf['images'][:]
+        # images = hdf['masked_images'][:]
+        
+        actions = hdf['actions'][:]
+        
+        return (images, actions)
+
 def get_steps(file_path):
     print("Loading data...")
     images, actions = load_steps(file_path)
@@ -73,7 +81,7 @@ class PushCubeDataset(Dataset):
         self.base_tokenizer = base_tokenizer
         self.image_transform = image_transform
         self.prompt_builder_fn = prompt_builder_fn
-        self.instruction = "push the blue cube to the striped target"
+        self.instruction = "push the cube to the target"
         
         print(f"What action should the robot take to {self.instruction}?")
         
