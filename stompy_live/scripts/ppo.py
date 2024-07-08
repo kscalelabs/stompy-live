@@ -22,13 +22,14 @@ from torch.distributions.normal import Normal
 from torch.utils.tensorboard import SummaryWriter
 
 from stompy_live.agents.stompy.stompy import Stompy  # noqa: F401
+from stompy_live.envs.franka_push_cube import PushCubeEnv # noqa: F401
 from stompy_live.envs.stompy_env import StompyEnv  # noqa: F401
 from stompy_live.envs.stompyarm_env import StompyPushCubeEnv  # noqa: F401
 
 """
 Running PPO on PickCube-v1 from maniskill for testing
 Benchmark: ~7000 SPS on one GPU on lambda cluster
-python stompy_live/scripts/ppo.py --env_id="PushCube-v1" \
+python stompy_live/scripts/ppo.py --env_id="New-PushCube-v1" \
   --num_envs=2048 --update_epochs=8 --num_minibatches=32 \
   --total_timesteps=1_000_000 --eval_freq=10 --num-steps=20
 
