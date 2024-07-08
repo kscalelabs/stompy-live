@@ -22,6 +22,9 @@ import numpy as np
 import torch
 import torch.random
 from transforms3d.euler import euler2quat
+import math
+
+import random
 
 from mani_skill.agents.robots import Fetch, Panda, Xmate3Robotiq
 from mani_skill.envs.sapien_env import BaseEnv
@@ -59,10 +62,10 @@ class PushCubeEnv(BaseEnv):
     agent: Union[Panda, Xmate3Robotiq, Fetch]
 
     # set some commonly used values
-    goal_radius = 0.1
+    goal_radius = 0.05
     cube_half_size = 0.02
 
-    def __init__(self, *args, robot_uids="panda", robot_init_qpos_noise=0.02, **kwargs):
+    def __init__(self, *args, robot_uids="panda", robot_init_qpos_noise=0.5, **kwargs):
         # specifying robot_uids="panda" as the default means gym.make("PushCube-v1") will default to using the panda arm.
         self.robot_init_qpos_noise = robot_init_qpos_noise
         super().__init__(*args, robot_uids=robot_uids, **kwargs)
@@ -149,7 +152,7 @@ class PushCubeEnv(BaseEnv):
 
             # here we write some randomization code that randomizes the x, y position of the cube we are pushing in the range [-0.1, -0.1] to [0.1, 0.1]
             xyz = torch.zeros((b, 3))
-            xyz[..., :2] = torch.rand((b, 2)) * 0.2 - 0.1
+            xyz[..., :2] = torch.rand((b, 2)) * 0.4 - 0.2
             xyz[..., 2] = self.cube_half_size
             q = [1, 0, 0, 0]
             # we can then create a pose object using Pose.create_from_pq to then set the cube pose with. Note that even though our quaternion
@@ -162,9 +165,11 @@ class PushCubeEnv(BaseEnv):
 
             # here we set the location of that red/white target (the goal region). In particular here, we set the position to be in front of the cube
             # and we further rotate 90 degrees on the y-axis to make the target object face up
-            target_region_xyz = xyz + torch.tensor([0.1 + self.goal_radius, 0, 0])
+            target_region_xyz = torch.zeros((b, 3))
             # set a little bit above 0 so the target is sitting on the table
-            target_region_xyz[..., 2] = 1e-3
+            target_region_xyz[..., :2] = torch.rand((b, 2)) * 0.5 - 0.25
+            target_region_xyz[..., 2] = self.cube_half_size
+            q = [1, 0, 0, 0]
             self.goal_region.set_pose(
                 Pose.create_from_pq(
                     p=target_region_xyz,
