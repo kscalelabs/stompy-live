@@ -11,7 +11,16 @@ git clone https://github.com/kscalelabs/stompy-live
 && pip install -e .
 ```
 # From ManiSkill2 Docs for downloading assets:
-Some environments require downloading assets. You can download all the assets by  ` python -m mani_skill.utils.download_asset all ` or download task-specific assets by ` python -m mani_skill.utils.download_asset ${ENV_ID} ` . The assets will be downloaded to ` ./data/ ` by default, and you can also use the environment variable ` MS2_ASSET_DIR `to specify this destination.
+
+Some environments require downloading assets. You can download all the assets by  ` python -m mani_skill.utils.download_asset all ` or download task-specific assets by ` python -m mani_skill.utils.download_asset ENV_ID` . The assets will be downloaded to ` ./data/ ` by default, and you can also use the environment variable ` MS2_ASSET_DIR `to specify this destination.
+
+You will want to, at a minimum, download
+
+- ycq
+- ReplicaCAD
+- AI2THOR
+
+by replacing `ENV_ID` with the given datasets in the previously given command.
 
 # Tests:
 
