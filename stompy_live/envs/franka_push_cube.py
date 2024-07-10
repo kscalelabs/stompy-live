@@ -1,5 +1,4 @@
-"""
-Code for a minimal environment/task with just a robot being loaded. We recommend copying this template and modifying as you need.
+"""Code for a minimal environment/task with just a robot being loaded. We recommend copying this template and modifying as you need.
 
 At a high-level, ManiSkill tasks can minimally be defined by how the environment resets, what agents/objects are
 loaded, goal parameterization, and success conditions
@@ -20,23 +19,21 @@ from typing import Any, Dict, Union
 import numpy as np
 import torch
 import torch.random
-from transforms3d.euler import euler2quat
-
 from mani_skill.agents.robots import Fetch, Panda, Xmate3Robotiq
 from mani_skill.envs.sapien_env import BaseEnv
 from mani_skill.sensors.camera import CameraConfig
-from mani_skill.utils import common, sapien_utils
+from mani_skill.utils import sapien_utils
 from mani_skill.utils.building import actors
 from mani_skill.utils.registration import register_env
 from mani_skill.utils.scene_builder.table import TableSceneBuilder
 from mani_skill.utils.structs import Pose
 from mani_skill.utils.structs.types import Array, GPUMemoryConfig, SimConfig
+from transforms3d.euler import euler2quat
 
 
 @register_env("New-PushCube-v1", max_episode_steps=50)
 class PushCubeEnv(BaseEnv):
-    """
-    Task Description
+    """Task Description.
     ----------------
     A simple task where the objective is to push and move a cube to a goal region in front of it
 
@@ -61,7 +58,7 @@ class PushCubeEnv(BaseEnv):
     goal_radius = 0.1
     cube_half_size = 0.02
 
-    def __init__(self, *args, robot_uids="panda", robot_init_qpos_noise=0.02, **kwargs):
+    def __init__(self, *args, robot_uids="panda", robot_init_qpos_noise=0.02, **kwargs) -> None:
         # specifying robot_uids="panda" as the default means gym.make("PushCube-v1") will default to using the panda arm.
         self.robot_init_qpos_noise = robot_init_qpos_noise
         super().__init__(*args, robot_uids=robot_uids, **kwargs)
@@ -94,7 +91,7 @@ class PushCubeEnv(BaseEnv):
         pose = sapien_utils.look_at([0.6, 0.8, 0.4], [0.0, 0.0, 0.35])
         return CameraConfig("render_camera", pose=pose, width=512, height=512, fov=1, near=0.01, far=100)
 
-    def _load_scene(self, options: dict):
+    def _load_scene(self, options: dict) -> None:
         # we use a prebuilt scene builder class that automatically loads in a floor and table.
         self.table_scene = TableSceneBuilder(env=self, robot_init_qpos_noise=self.robot_init_qpos_noise)
         self.table_scene.build()
@@ -127,7 +124,7 @@ class PushCubeEnv(BaseEnv):
         # and are there just for generating evaluation videos.
         # self._hidden_objects.append(self.goal_region)
 
-    def _initialize_episode(self, env_idx: torch.Tensor, options: dict):
+    def _initialize_episode(self, env_idx: torch.Tensor, options: dict) -> None:
         # use the torch.device context manager to automatically create tensors on CPU or CUDA depending on self.device, the device the environment runs on
         with torch.device(self.device):
             # the initialization functions where you as a user place all the objects and initialize their properties

@@ -2,11 +2,12 @@ import numpy as np
 import torch
 from torch import nn
 from torch.distributions import Normal
+
 from stompy_live.agents.layer_init import layer_init
 
 
 class Agent(nn.Module):
-    def __init__(self, envs):
+    def __init__(self, envs) -> None:
         super().__init__()
         self.critic = nn.Sequential(
             layer_init(nn.Linear(np.array(envs.single_observation_space.shape).prod(), 256)),

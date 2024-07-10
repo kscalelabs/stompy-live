@@ -1,9 +1,11 @@
-from twitch.client import message_queue, init
+import queue
+import time
 from threading import Thread
-import time, queue
+
+from twitch.client import init, message_queue
 
 
-def main():
+def main() -> None:
     print("Starting Twitch IRC client")
 
     # Initializes Twitch IRC thread

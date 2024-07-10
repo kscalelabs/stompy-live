@@ -1,31 +1,29 @@
-"""
-Code for building scenes from the ReplicaCAD dataset https://aihabitat.org/datasets/replica_cad/
+"""Code for building scenes from the ReplicaCAD dataset https://aihabitat.org/datasets/replica_cad/.
 
 This code is also heavily commented to serve as a tutorial for how to build custom scenes from scratch and/or port scenes over from other datasets/simulators
 """
 
 import json
 import os.path as osp
-from typing import Dict, List, Tuple, Union
 from pathlib import Path
+from typing import Dict, List, Tuple, Union
 
 import numpy as np
 import sapien
 import torch
 import transforms3d
-
 from mani_skill import ASSET_DIR
 from mani_skill.agents.robots.fetch import (
-    Fetch,
-    FETCH_WHEELS_COLLISION_BIT,
     FETCH_BASE_COLLISION_BIT,
+    FETCH_WHEELS_COLLISION_BIT,
+    Fetch,
 )
 from mani_skill.utils.scene_builder import SceneBuilder
 from mani_skill.utils.scene_builder.registration import register_scene_builder
-from mani_skill.utils.structs import Actor, Articulation
-from stompy_live.agents.stompy.stompy import Stompy
-
 from mani_skill.utils.scene_builder.replicacad.scene_builder import DATASET_CONFIG_DIR
+from mani_skill.utils.structs import Actor, Articulation
+
+from stompy_live.agents.stompy.stompy import Stompy
 
 IGNORE_FETCH_COLLISION_STRS = ["mat", "rug", "carpet"]
 
@@ -37,7 +35,7 @@ class ReplicaCADSceneBuilder(SceneBuilder):
     # build configs for RCAD are string file names
     build_configs: List[str] = None
 
-    def __init__(self, env, robot_init_qpos_noise=0.02, include_staging_scenes=False):
+    def __init__(self, env, robot_init_qpos_noise=0.02, include_staging_scenes=False) -> None:
         super().__init__(env, robot_init_qpos_noise=robot_init_qpos_noise)
         # Scene datasets from any source generally have several configurations, each of which may involve changing object geometries, poses etc.
         # You should store this configuration information in the self.build_configs list, which permits the code to sample from when
@@ -55,7 +53,7 @@ class ReplicaCADSceneBuilder(SceneBuilder):
         self._navigable_positions = [None] * len(self.build_configs)
         self.build_config_idxs: List[int] = None
 
-    def build(self, build_config_idxs: Union[int, List[int]]):
+    def build(self, build_config_idxs: Union[int, List[int]]) -> None:
         # build_config_idxs is a list of integers, where the ith value is the scene idx for the ith parallel env
         if isinstance(build_config_idxs, int):
             build_config_idxs = [build_config_idxs] * self.env.num_envs
@@ -238,7 +236,7 @@ class ReplicaCADSceneBuilder(SceneBuilder):
             shared_name="scene_background",
         )
 
-    def initialize(self, env_idx: torch.Tensor):
+    def initialize(self, env_idx: torch.Tensor) -> None:
         if self.env.robot_uids == "fetch":
             agent: Fetch = self.env.agent
             rest_keyframe = agent.keyframes["rest"]
@@ -263,7 +261,7 @@ class ReplicaCADSceneBuilder(SceneBuilder):
         self,
         actor: Actor,
         disable_base_collisions=False,
-    ):
+    ) -> None:
         actor.set_collision_group_bit(group=2, bit_idx=FETCH_WHEELS_COLLISION_BIT, bit=1)
         if disable_base_collisions:
             actor.set_collision_group_bit(group=2, bit_idx=FETCH_BASE_COLLISION_BIT, bit=1)

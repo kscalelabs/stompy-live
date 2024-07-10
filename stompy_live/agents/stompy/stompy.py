@@ -2,12 +2,13 @@
 
 import numpy as np
 import sapien
-from stompy_live.utils.config import get_model_dir
 from mani_skill.agents.base_agent import BaseAgent, Keyframe
 from mani_skill.agents.controllers import PDJointPosControllerConfig
 from mani_skill.agents.registration import register_agent
 from mani_skill.sensors.camera import CameraConfig
 from transforms3d import euler
+
+from stompy_live.utils.config import get_model_dir
 
 
 @register_agent(

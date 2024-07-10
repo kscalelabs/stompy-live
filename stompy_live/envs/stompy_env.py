@@ -1,11 +1,7 @@
 from typing import Any, Dict, Union
 
 import numpy as np
-import sapien as sapien
-import sapien.physx as physx
 import torch
-from sapien import Pose
-
 from mani_skill.agents.robots import Fetch, Panda
 from mani_skill.envs.sapien_env import BaseEnv
 from mani_skill.sensors.camera import CameraConfig
@@ -14,15 +10,16 @@ from mani_skill.utils.registration import register_env
 from mani_skill.utils.scene_builder import SceneBuilder
 from mani_skill.utils.scene_builder.registration import REGISTERED_SCENE_BUILDERS
 from mani_skill.utils.structs.types import GPUMemoryConfig, SimConfig
+from sapien import Pose
+
 from stompy_live.agents.stompy.stompy import Stompy
-from stompy_live.utils.scene_builders.replicacad import ReplicaCADSceneBuilder  # noqa: F401
 from stompy_live.utils.scene_builders.ai2thor import AI2THORBaseSceneBuilder  # noqa: F401
+from stompy_live.utils.scene_builders.replicacad import ReplicaCADSceneBuilder  # noqa: F401
 
 
 @register_env("New-SceneManipulation-v1", max_episode_steps=float("inf"))
 class SceneManipulationEnv(BaseEnv):
-    """
-    A base environment for simulating manipulation tasks in more complex scenes. Creating this base environment is only useful
+    """A base environment for simulating manipulation tasks in more complex scenes. Creating this base environment is only useful
     for explorations/visualization, there are no success/failure metrics or rewards.
 
     Args:
@@ -53,7 +50,7 @@ class SceneManipulationEnv(BaseEnv):
         num_envs=1,
         reconfiguration_freq=None,
         **kwargs,
-    ):
+    ) -> None:
         if isinstance(scene_builder_cls, str):
             scene_builder_cls = REGISTERED_SCENE_BUILDERS[scene_builder_cls].scene_builder_cls
         self.scene_builder: SceneBuilder = scene_builder_cls(self)
@@ -93,7 +90,7 @@ class SceneManipulationEnv(BaseEnv):
             return
         return super()._load_lighting(options)
 
-    def _load_scene(self, options: dict):
+    def _load_scene(self, options: dict) -> None:
         if self.scene_builder.build_configs is not None:
             self.scene_builder.build(
                 self.build_config_idxs
@@ -103,7 +100,7 @@ class SceneManipulationEnv(BaseEnv):
         else:
             self.scene_builder.build()
 
-    def _initialize_episode(self, env_idx: torch.Tensor, options: dict):
+    def _initialize_episode(self, env_idx: torch.Tensor, options: dict) -> None:
         with torch.device(self.device):
             if self.scene_builder.init_configs is not None:
                 self.scene_builder.initialize(
@@ -120,7 +117,7 @@ class SceneManipulationEnv(BaseEnv):
     def evaluate(self) -> dict:
         return dict()
 
-    def compute_dense_reward(self, obs: Any, action: torch.Tensor, info: Dict):
+    def compute_dense_reward(self, obs: Any, action: torch.Tensor, info: Dict) -> int:
         return 0
 
     def compute_normalized_dense_reward(self, obs: Any, action: torch.Tensor, info: Dict):

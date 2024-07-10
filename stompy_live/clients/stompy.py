@@ -3,6 +3,7 @@
 import gymnasium as gym
 import torch
 from mani_skill.utils.wrappers.flatten import FlattenActionSpaceWrapper
+
 from stompy_live.envs.stompy_env import SceneManipulationEnv  # noqa: F401
 
 # Load the model

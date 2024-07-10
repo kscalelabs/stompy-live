@@ -16,7 +16,7 @@ from mani_skill.utils.structs.types import GPUMemoryConfig, SimConfig
 class HumanoidStandEnv(BaseEnv):
     SUPPORTED_REWARD_MODES = ["sparse", "none"]
 
-    def __init__(self, *args, robot_uids="unitree_h1_simplified", robot_init_qpos_noise=0.02, **kwargs):
+    def __init__(self, *args, robot_uids="unitree_h1_simplified", robot_init_qpos_noise=0.02, **kwargs) -> None:
         self.robot_init_qpos_noise = robot_init_qpos_noise
         super().__init__(*args, robot_uids=robot_uids, **kwargs)
 
@@ -29,10 +29,10 @@ class HumanoidStandEnv(BaseEnv):
         pose = sapien_utils.look_at([1.0, 1.0, 2.5], [0.0, 0.0, 0.75])
         return CameraConfig("render_camera", pose, 512, 512, 1, 0.01, 100)
 
-    def _load_scene(self, options: dict):
+    def _load_scene(self, options: dict) -> None:
         build_ground(self.scene)
 
-    def _initialize_episode(self, env_idx: torch.Tensor, options: dict):
+    def _initialize_episode(self, env_idx: torch.Tensor, options: dict) -> None:
         pass
 
     def evaluate(self):
@@ -62,7 +62,7 @@ class UnitreeH1StandEnv(HumanoidStandEnv):
     SUPPORTED_ROBOTS = ["unitree_h1_simplified"]
     agent: Union[UnitreeH1Simplified]
 
-    def __init__(self, *args, robot_uids="unitree_h1_simplified", **kwargs):
+    def __init__(self, *args, robot_uids="unitree_h1_simplified", **kwargs) -> None:
         super().__init__(*args, robot_uids=robot_uids, **kwargs)
 
     @property
@@ -74,7 +74,7 @@ class UnitreeH1StandEnv(HumanoidStandEnv):
         pose = sapien_utils.look_at([1.0, 1.0, 2.5], [0.0, 0.0, 0.75])
         return CameraConfig("render_camera", pose, 512, 512, 1, 0.01, 100)
 
-    def _initialize_episode(self, env_idx: torch.Tensor, options: dict):
+    def _initialize_episode(self, env_idx: torch.Tensor, options: dict) -> None:
         with torch.device(self.device):
             b = len(env_idx)
             standing_keyframe = self.agent.keyframes["standing"]

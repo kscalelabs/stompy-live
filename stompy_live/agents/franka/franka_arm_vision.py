@@ -2,11 +2,12 @@ import numpy as np
 import torch
 from torch import nn
 from torch.distributions import Normal
+
 from stompy_live.agents.layer_init import layer_init
 
 
 class NatureCNN(nn.Module):
-    def __init__(self, sample_obs):
+    def __init__(self, sample_obs) -> None:
         super().__init__()
 
         extractors = {}
@@ -14,7 +15,7 @@ class NatureCNN(nn.Module):
         self.out_features = 0
         feature_size = 256
         in_channels = sample_obs["rgb"].shape[-1]
-        image_size = (sample_obs["rgb"].shape[1], sample_obs["rgb"].shape[2])
+        (sample_obs["rgb"].shape[1], sample_obs["rgb"].shape[2])
         state_size = sample_obs["state"].shape[-1]
 
         # here we use a NatureCNN architecture to process images, but any architecture is permissble here
@@ -60,7 +61,7 @@ class NatureCNN(nn.Module):
 
 
 class Agent(nn.Module):
-    def __init__(self, envs, sample_obs):
+    def __init__(self, envs, sample_obs) -> None:
         super().__init__()
         self.feature_net = NatureCNN(sample_obs=sample_obs)
         # latent_size = np.array(envs.unwrapped.single_observation_space.shape).prod()
