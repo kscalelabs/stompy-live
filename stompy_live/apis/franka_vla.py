@@ -1,5 +1,4 @@
-"""
-deploy.py
+"""deploy.py.
 
 Code taken from https://github.com/openvla/openvla/blob/main/vla-scripts/deploy.py.
 
@@ -66,11 +65,12 @@ def get_openvla_prompt(instruction: str, openvla_path: Union[str, Path]) -> str:
 
 # === Server Interface ===
 class OpenVLAServer:
-    def __init__(self, openvla_path: Union[str, Path], attn_implementation: Optional[str] = "flash_attention_2") -> Path:
-        """
-        A simple server for OpenVLA models; exposes `/act` to predict an action for a given image + instruction.
-            => Takes in {"image": np.ndarray, "instruction": str, "unnorm_key": Optional[str]}
-            => Returns  {"action": np.ndarray}
+    def __init__(
+        self, openvla_path: Union[str, Path], attn_implementation: Optional[str] = "flash_attention_2"
+    ) -> Path:
+        """A simple server for OpenVLA models; exposes `/act` to predict an action for a given image + instruction.
+        => Takes in {"image": np.ndarray, "instruction": str, "unnorm_key": Optional[str]}
+        => Returns  {"action": np.ndarray}.
         """
         self.openvla_path, self.attn_implementation = openvla_path, attn_implementation
         self.device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")

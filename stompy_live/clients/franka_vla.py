@@ -1,17 +1,20 @@
-from twitch.client import message_queue, init
+import queue
+import time
 from threading import Thread
-import time, queue
-import requests
-import gymnasium as gym
-from mani_skill.utils.wrappers.flatten import FlattenActionSpaceWrapper, FlattenRGBDObservationWrapper
-import torch
-import stompy_live.envs.franka_push_cube # noqa: F401
 
+import gymnasium as gym
 import json_numpy
+import requests
+import torch
+from mani_skill.utils.wrappers.flatten import FlattenActionSpaceWrapper, FlattenRGBDObservationWrapper
+
+import stompy_live.envs.franka_push_cube  # noqa: F401
+from twitch.client import init, message_queue
+
 json_numpy.patch()
-import pygame
-import numpy as np
 import cv2
+import numpy as np
+import pygame
 
 window = pygame.display.set_mode((1024, 1024))
 
@@ -53,13 +56,13 @@ while True:
 
             surface = pygame.surfarray.make_surface(upsized_image)
             window.blit(surface, (0, 0))
-            
+
             pygame.display.update()
 
             obs, reward, terminated, truncated, info = envs.step(torch.tensor(action, dtype=torch.float))
 
             done = terminated or truncated
-            
+
     except queue.Empty:
         time.sleep(1)
     except KeyboardInterrupt:

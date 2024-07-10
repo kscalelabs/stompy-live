@@ -4,13 +4,12 @@ import argparse
 import logging
 import sys
 import termios
+import tkinter as tk
 import tty
 
-import tkinter as tk
 import gymnasium as gym
 import numpy as np
 from mani_skill.utils.wrappers import RecordEpisode
-
 from simgame.envs.stompy_arm import StompyPushCubeEnv
 
 logger = logging.getLogger(__name__)

@@ -3,7 +3,7 @@
 from stompy_live.utils.scene_builders.ycb_builder import model_db
 
 
-def main():
+def main() -> None:
     print("Available model IDs:", model_db())
 
 

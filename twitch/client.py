@@ -1,7 +1,9 @@
 import os
-import socket
 import queue
-import re, time
+import re
+import socket
+import sys
+import time
 
 server = "irc.chat.twitch.tv"
 port = 6667
@@ -12,7 +14,7 @@ channel = "#kscaletest"
 message_queue = queue.Queue()
 
 
-def parse_message(raw_message):
+def parse_message(raw_message: string):
     # This regex pattern matches the message part of a PRIVMSG
     pattern = r"^:.+!.+@.+\.tmi\.twitch\.tv PRIVMSG #\w+ :(.+)$"
     match = re.match(pattern, raw_message)
@@ -21,7 +23,7 @@ def parse_message(raw_message):
     return None
 
 
-def init():
+def init() -> None:
     sock = socket.socket()
 
     sock.connect((server, port))
@@ -48,4 +50,4 @@ def init():
 
     except KeyboardInterrupt:
         sock.close()
-        exit()
+        sys.exit()

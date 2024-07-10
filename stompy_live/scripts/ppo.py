@@ -9,15 +9,13 @@ from typing import Optional
 import gymnasium as gym
 
 # ManiSkill specific imports
-import mani_skill.envs
 import numpy as np
 import torch
-import torch.nn as nn
-import torch.optim as optim
 import tyro
 from mani_skill.utils.wrappers.flatten import FlattenActionSpaceWrapper
 from mani_skill.utils.wrappers.record import RecordEpisode
 from mani_skill.vector.wrappers.gymnasium import ManiSkillVectorEnv
+from torch import nn, optim
 from torch.distributions.normal import Normal
 from torch.utils.tensorboard import SummaryWriter
 
@@ -36,9 +34,9 @@ python stompy_live/scripts/ppo.py --env_id="PushCube-v1" \
 Running PPO on stompy arm in the push cube environment
 python stompy_live/scripts/ppo.py --env_id="SPushCube-v0" \
   --num_envs=2048 --update_epochs=8 --num_minibatches=32 \
-  --total_timesteps=100_000_000 --eval_freq=10 
+  --total_timesteps=100_000_000 --eval_freq=10
 
-Evaluating 
+Evaluating
 python stompy_live/scripts/ppo.py --env_id="SPushCube-v0" \
    --evaluate --checkpoint=runs/SPushCube-v0__ppo__1__1719554639/ckpt_291.pt \
    --num_eval_envs=1 --num-eval-steps=1000
@@ -142,7 +140,7 @@ def layer_init(layer, std=np.sqrt(2), bias_const=0.0):
 
 
 class Agent(nn.Module):
-    def __init__(self, envs):
+    def __init__(self, envs) -> None:
         super().__init__()
         self.critic = nn.Sequential(
             layer_init(nn.Linear(np.array(envs.single_observation_space.shape).prod(), 256)),
@@ -240,7 +238,8 @@ if __name__ == "__main__":
             eval_output_dir = f"{os.path.dirname(args.checkpoint)}/test_videos"
         print(f"Saving eval videos to {eval_output_dir}")
         if args.save_train_video_freq is not None:
-            save_video_trigger = lambda x: (x // args.num_steps) % args.save_train_video_freq == 0
+            def save_video_trigger(x):
+                return x // args.num_steps % args.save_train_video_freq == 0
             envs = RecordEpisode(
                 envs,
                 output_dir=f"runs/{run_name}/train_videos",
@@ -283,14 +282,14 @@ if __name__ == "__main__":
     eps_returns = torch.zeros(args.num_envs, dtype=torch.float, device=device)
     eps_lens = np.zeros(args.num_envs)
     place_rew = torch.zeros(args.num_envs, device=device)
-    print(f"####")
+    print("####")
     print(
         f"args.num_iterations={args.num_iterations} args.num_envs={args.num_envs} args.num_eval_envs={args.num_eval_envs}"
     )
     print(
         f"args.minibatch_size={args.minibatch_size} args.batch_size={args.batch_size} args.update_epochs={args.update_epochs}"
     )
-    print(f"####")
+    print("####")
     action_space_low, action_space_high = (
         torch.from_numpy(envs.single_action_space.low).to(device),
         torch.from_numpy(envs.single_action_space.high).to(device),

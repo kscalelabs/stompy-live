@@ -1,6 +1,4 @@
-
-"""
-Code for a minimal environment/task with just a robot being loaded. We recommend copying this template and modifying as you need.
+"""Code for a minimal environment/task with just a robot being loaded. We recommend copying this template and modifying as you need.
 
 At a high-level, ManiSkill tasks can minimally be defined by how the environment resets, what agents/objects are
 loaded, goal parameterization, and success conditions
@@ -21,23 +19,21 @@ from typing import Any, Dict, Union
 import numpy as np
 import torch
 import torch.random
-from transforms3d.euler import euler2quat
-
 from mani_skill.agents.robots import Fetch, Panda, Xmate3Robotiq
 from mani_skill.envs.sapien_env import BaseEnv
 from mani_skill.sensors.camera import CameraConfig
-from mani_skill.utils import common, sapien_utils
+from mani_skill.utils import sapien_utils
 from mani_skill.utils.building import actors
 from mani_skill.utils.registration import register_env
 from mani_skill.utils.scene_builder.table import TableSceneBuilder
 from mani_skill.utils.structs import Pose
 from mani_skill.utils.structs.types import Array, GPUMemoryConfig, SimConfig
+from transforms3d.euler import euler2quat
 
 
 @register_env("New-PushCube-v1", max_episode_steps=50)
 class PushCubeEnv(BaseEnv):
-    """
-    Task Description
+    """Task Description.
     ----------------
     A simple task where the objective is to push and move a cube to a goal region in front of it
 
@@ -62,7 +58,7 @@ class PushCubeEnv(BaseEnv):
     goal_radius = 0.1
     cube_half_size = 0.02
 
-    def __init__(self, *args, robot_uids="panda", robot_init_qpos_noise=0.02, **kwargs):
+    def __init__(self, *args, robot_uids="panda", robot_init_qpos_noise=0.02, **kwargs) -> None:
         # specifying robot_uids="panda" as the default means gym.make("PushCube-v1") will default to using the panda arm.
         self.robot_init_qpos_noise = robot_init_qpos_noise
         super().__init__(*args, robot_uids=robot_uids, **kwargs)
@@ -70,11 +66,7 @@ class PushCubeEnv(BaseEnv):
     # Specify default simulation/gpu memory configurations to override any default values
     @property
     def _default_sim_config(self):
-        return SimConfig(
-            gpu_memory_cfg=GPUMemoryConfig(
-                found_lost_pairs_capacity=2**25, max_rigid_patch_count=2**18
-            )
-        )
+        return SimConfig(gpu_memory_cfg=GPUMemoryConfig(found_lost_pairs_capacity=2**25, max_rigid_patch_count=2**18))
 
     @property
     def _default_sensor_configs(self):
@@ -97,15 +89,11 @@ class PushCubeEnv(BaseEnv):
     def _default_human_render_camera_configs(self):
         # registers a more high-definition (512x512) camera used just for rendering when render_mode="rgb_array" or calling env.render_rgb_array()
         pose = sapien_utils.look_at([0.6, 0.8, 0.4], [0.0, 0.0, 0.35])
-        return CameraConfig(
-            "render_camera", pose=pose, width=512, height=512, fov=1, near=0.01, far=100
-        )
+        return CameraConfig("render_camera", pose=pose, width=512, height=512, fov=1, near=0.01, far=100)
 
-    def _load_scene(self, options: dict):
+    def _load_scene(self, options: dict) -> None:
         # we use a prebuilt scene builder class that automatically loads in a floor and table.
-        self.table_scene = TableSceneBuilder(
-            env=self, robot_init_qpos_noise=self.robot_init_qpos_noise
-        )
+        self.table_scene = TableSceneBuilder(env=self, robot_init_qpos_noise=self.robot_init_qpos_noise)
         self.table_scene.build()
 
         # we then add the cube that we want to push and give it a color and size using a convenience build_cube function
@@ -136,7 +124,7 @@ class PushCubeEnv(BaseEnv):
         # and are there just for generating evaluation videos.
         # self._hidden_objects.append(self.goal_region)
 
-    def _initialize_episode(self, env_idx: torch.Tensor, options: dict):
+    def _initialize_episode(self, env_idx: torch.Tensor, options: dict) -> None:
         # use the torch.device context manager to automatically create tensors on CPU or CUDA depending on self.device, the device the environment runs on
         with torch.device(self.device):
             # the initialization functions where you as a user place all the objects and initialize their properties
@@ -176,10 +164,7 @@ class PushCubeEnv(BaseEnv):
         # success is achieved when the cube's xy position on the table is within the
         # goal region's area (a circle centered at the goal region's xy position)
         is_obj_placed = (
-            torch.linalg.norm(
-                self.obj.pose.p[..., :2] - self.goal_region.pose.p[..., :2], axis=1
-            )
-            < self.goal_radius
+            torch.linalg.norm(self.obj.pose.p[..., :2] - self.goal_region.pose.p[..., :2], axis=1) < self.goal_radius
         )
 
         return {
@@ -204,8 +189,7 @@ class PushCubeEnv(BaseEnv):
     def compute_dense_reward(self, obs: Any, action: Array, info: Dict):
         # We also create a pose marking where the robot should push the cube from that is easiest (pushing from behind the cube)
         tcp_push_pose = Pose.create_from_pq(
-            p=self.obj.pose.p
-            + torch.tensor([-self.cube_half_size - 0.005, 0, 0], device=self.device)
+            p=self.obj.pose.p + torch.tensor([-self.cube_half_size - 0.005, 0, 0], device=self.device)
         )
         tcp_to_push_pose = tcp_push_pose.p - self.agent.tcp.pose.p
         tcp_to_push_pose_dist = torch.linalg.norm(tcp_to_push_pose, axis=1)
@@ -216,9 +200,7 @@ class PushCubeEnv(BaseEnv):
         # we further multiply the place_reward by a mask reached so we only add the place reward if the robot has reached the desired push pose
         # This reward design helps train RL agents faster by staging the reward out.
         reached = tcp_to_push_pose_dist < 0.01
-        obj_to_goal_dist = torch.linalg.norm(
-            self.obj.pose.p[..., :2] - self.goal_region.pose.p[..., :2], axis=1
-        )
+        obj_to_goal_dist = torch.linalg.norm(self.obj.pose.p[..., :2] - self.goal_region.pose.p[..., :2], axis=1)
         place_reward = 1 - torch.tanh(5 * obj_to_goal_dist)
         reward += place_reward * reached
 
