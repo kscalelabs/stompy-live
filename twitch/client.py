@@ -14,7 +14,7 @@ channel = "#kscaletest"
 message_queue = queue.Queue()
 
 
-def parse_message(raw_message):
+def parse_message(raw_message: string):
     # This regex pattern matches the message part of a PRIVMSG
     pattern = r"^:.+!.+@.+\.tmi\.twitch\.tv PRIVMSG #\w+ :(.+)$"
     match = re.match(pattern, raw_message)

@@ -1,3 +1,5 @@
+"""Agent for the Panda arm. Code largely ported from ManiSkill."""
+
 import numpy as np
 import torch
 from torch import nn
