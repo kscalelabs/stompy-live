@@ -53,7 +53,7 @@ clean:
 #       Static Checks      #
 # ------------------------ #
 
-py-files := $(shell find . -name '*.py')
+py-files := $(shell find . -not -path '*/.*' -name '*.py')
 
 format:
 	@black $(py-files)
