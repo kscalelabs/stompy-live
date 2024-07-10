@@ -15,11 +15,11 @@ from mani_skill.utils.scene_builder import SceneBuilder
 from mani_skill.utils.scene_builder.registration import REGISTERED_SCENE_BUILDERS
 from mani_skill.utils.structs.types import GPUMemoryConfig, SimConfig
 from stompy_live.agents.stompy.stompy import Stompy
-from stompy_live.utils.scene_builders.replicacad import ReplicaCADSceneBuilder # noqa: F401
-from stompy_live.utils.scene_builders.ai2thor import AI2THORBaseSceneBuilder # noqa: F401
+from stompy_live.utils.scene_builders.replicacad import ReplicaCADSceneBuilder  # noqa: F401
+from stompy_live.utils.scene_builders.ai2thor import AI2THORBaseSceneBuilder  # noqa: F401
 
 
-@register_env("New-SceneManipulation-v1", max_episode_steps=float('inf'))
+@register_env("New-SceneManipulation-v1", max_episode_steps=float("inf"))
 class SceneManipulationEnv(BaseEnv):
     """
     A base environment for simulating manipulation tasks in more complex scenes. Creating this base environment is only useful
@@ -52,12 +52,10 @@ class SceneManipulationEnv(BaseEnv):
         init_config_idxs=None,
         num_envs=1,
         reconfiguration_freq=None,
-        **kwargs
+        **kwargs,
     ):
         if isinstance(scene_builder_cls, str):
-            scene_builder_cls = REGISTERED_SCENE_BUILDERS[
-                scene_builder_cls
-            ].scene_builder_cls
+            scene_builder_cls = REGISTERED_SCENE_BUILDERS[scene_builder_cls].scene_builder_cls
         self.scene_builder: SceneBuilder = scene_builder_cls(self)
         self.build_config_idxs = build_config_idxs
         self.init_config_idxs = init_config_idxs
@@ -67,11 +65,7 @@ class SceneManipulationEnv(BaseEnv):
             else:
                 reconfiguration_freq = 0
         super().__init__(
-            *args,
-            robot_uids=robot_uids,
-            reconfiguration_freq=reconfiguration_freq,
-            num_envs=num_envs,
-            **kwargs
+            *args, robot_uids=robot_uids, reconfiguration_freq=reconfiguration_freq, num_envs=num_envs, **kwargs
         )
 
     @property
@@ -90,12 +84,8 @@ class SceneManipulationEnv(BaseEnv):
         if options is None:
             options = dict(reconfigure=False)
         if "reconfigure" in options and options["reconfigure"]:
-            self.build_config_idxs = options.pop(
-                "build_config_idxs", self.build_config_idxs
-            )
-            self.init_config_idxs = options.pop(
-                "init_config_idxs", self.init_config_idxs
-            )
+            self.build_config_idxs = options.pop("build_config_idxs", self.build_config_idxs)
+            self.init_config_idxs = options.pop("init_config_idxs", self.init_config_idxs)
         return super().reset(seed, options)
 
     def _load_lighting(self, options: dict):
@@ -133,9 +123,7 @@ class SceneManipulationEnv(BaseEnv):
     def compute_dense_reward(self, obs: Any, action: torch.Tensor, info: Dict):
         return 0
 
-    def compute_normalized_dense_reward(
-        self, obs: Any, action: torch.Tensor, info: Dict
-    ):
+    def compute_normalized_dense_reward(self, obs: Any, action: torch.Tensor, info: Dict):
         return self.compute_dense_reward(obs=obs, action=action, info=info) / 1
 
     @property

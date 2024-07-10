@@ -10,7 +10,9 @@ from mani_skill.sensors.camera import CameraConfig
 from transforms3d import euler
 
 
-@register_agent("stompy_latest")  # uncomment this if you want to register the agent so you can instantiate it by ID when creating environments
+@register_agent(
+    "stompy_latest"
+)  # uncomment this if you want to register the agent so you can instantiate it by ID when creating environments
 class Stompy(BaseAgent):
     uid = "stompy_latest"
     urdf_path = f"{get_model_dir()}/7DOF_NEWEST/robot_7dof_arm_merged_simplified.urdf"

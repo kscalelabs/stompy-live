@@ -102,18 +102,11 @@ class ReplicaCADSceneBuilder(SceneBuilder):
             # decomposed convex meshes for physical simulation
 
             # ReplicaCAD stores the background model here
-            background_template_name = osp.basename(
-                build_config_json["stage_instance"]["template_name"]
-            )
-            bg_path = str(
-                ASSET_DIR
-                / f"scene_datasets/replica_cad_dataset/stages/{background_template_name}.glb"
-            )
+            background_template_name = osp.basename(build_config_json["stage_instance"]["template_name"])
+            bg_path = str(ASSET_DIR / f"scene_datasets/replica_cad_dataset/stages/{background_template_name}.glb")
             builder = self.scene.create_actor_builder()
             # Note all ReplicaCAD assets are rotated by 90 degrees as they use a different xyz convention to SAPIEN/ManiSkill.
-            q = transforms3d.quaternions.axangle2quat(
-                np.array([1, 0, 0]), theta=np.deg2rad(90)
-            )
+            q = transforms3d.quaternions.axangle2quat(np.array([1, 0, 0]), theta=np.deg2rad(90))
             bg_pose = sapien.Pose(q=q)
 
             # When creating objects that do not need to be moved ever, you must provide the pose of the object ahead of time
@@ -130,7 +123,6 @@ class ReplicaCADSceneBuilder(SceneBuilder):
             # In the case of ReplicaCAD there are only dynamic and static objects. Since dynamic objects can be moved during simulation
             # we need to keep track of the initial poses of each dynamic actor we create.
             for obj_num, obj_meta in enumerate(build_config_json["object_instances"]):
-
                 # Again, for any dataset you will have to figure out how they reference object files
                 # Note that ASSET_DIR will always refer to the ~/.ms_data folder or whatever MS_ASSET_DIR is set to
                 obj_cfg_path = osp.join(
@@ -140,13 +132,9 @@ class ReplicaCADSceneBuilder(SceneBuilder):
                 )
                 with open(obj_cfg_path) as f:
                     obj_cfg = json.load(f)
-                visual_file = osp.join(
-                    osp.dirname(obj_cfg_path), obj_cfg["render_asset"]
-                )
+                visual_file = osp.join(osp.dirname(obj_cfg_path), obj_cfg["render_asset"])
                 if "collision_asset" in obj_cfg:
-                    collision_file = osp.join(
-                        osp.dirname(obj_cfg_path), obj_cfg["collision_asset"]
-                    )
+                    collision_file = osp.join(osp.dirname(obj_cfg_path), obj_cfg["collision_asset"])
                 builder = self.scene.create_actor_builder()
                 pos = obj_meta["translation"]
                 rot = obj_meta["rotation"]
@@ -157,10 +145,7 @@ class ReplicaCADSceneBuilder(SceneBuilder):
                 # Neatly for simulation, ReplicaCAD specifies if an object is meant to be simulated as dynamic (can be moved like pots) or static (must stay still, like kitchen counters)
                 if obj_meta["motion_type"] == "DYNAMIC":
                     builder.add_visual_from_file(visual_file)
-                    if (
-                        "use_bounding_box_for_collision" in obj_cfg
-                        and obj_cfg["use_bounding_box_for_collision"]
-                    ):
+                    if "use_bounding_box_for_collision" in obj_cfg and obj_cfg["use_bounding_box_for_collision"]:
                         # some dynamic objects do not have decomposed convex meshes and instead should use a simple bounding box for collision detection
                         # in this case we use the add_convex_collision_from_file function of SAPIEN which just creates a convex collision based on the visual mesh
                         builder.add_convex_collision_from_file(visual_file)
@@ -188,15 +173,10 @@ class ReplicaCADSceneBuilder(SceneBuilder):
 
                 # Certain objects, such as mats, rugs, and carpets, are on the ground and should not collide with the Fetch base
                 if any([x in actor_name for x in IGNORE_FETCH_COLLISION_STRS]):
-                    self.disable_fetch_move_collisions(
-                        actor, disable_base_collisions=True
-                    )
+                    self.disable_fetch_move_collisions(actor, disable_base_collisions=True)
 
             # ReplicaCAD also provides articulated objects
-            for i, articulated_meta in enumerate(
-                build_config_json["articulated_object_instances"]
-            ):
-
+            for i, articulated_meta in enumerate(build_config_json["articulated_object_instances"]):
                 template_name = articulated_meta["template_name"]
                 pos = articulated_meta["translation"]
                 rot = articulated_meta["rotation"]
@@ -216,12 +196,8 @@ class ReplicaCADSceneBuilder(SceneBuilder):
 
                 # for now classify articulated objects as "movable" object
                 for env_num in env_idx:
-                    self.articulations[f"env-{env_num}_{articulation.name}"] = (
-                        articulation
-                    )
-                    self.scene_objects[f"env-{env_num}_{articulation.name}"] = (
-                        articulation
-                    )
+                    self.articulations[f"env-{env_num}_{articulation.name}"] = articulation
+                    self.scene_objects[f"env-{env_num}_{articulation.name}"] = articulation
 
             # ReplicaCAD also specifies where to put lighting
             with open(
@@ -235,15 +211,12 @@ class ReplicaCADSceneBuilder(SceneBuilder):
             for light_cfg in lighting_cfg["lights"].values():
                 # It appears ReplicaCAD only specifies point light sources so we only use those here
                 if light_cfg["type"] == "point":
-                    light_pos_fixed = (
-                        sapien.Pose(q=q) * sapien.Pose(p=light_cfg["position"])
-                    ).p
+                    light_pos_fixed = (sapien.Pose(q=q) * sapien.Pose(p=light_cfg["position"])).p
                     # In SAPIEN, one can set color to unbounded values, higher just means more intense. ReplicaCAD provides color and intensity separately so
                     # we multiply it together here. We also take absolute value of intensity since some scene configs write negative intensities (which result in black holes)
                     self.scene.add_point_light(
                         light_pos_fixed,
-                        color=np.array(light_cfg["color"])
-                        * np.abs(light_cfg["intensity"]),
+                        color=np.array(light_cfg["color"]) * np.abs(light_cfg["intensity"]),
                         scene_idxs=env_idx,
                     )
             self.scene.set_ambient_light([0.3, 0.3, 0.3])
@@ -252,10 +225,7 @@ class ReplicaCADSceneBuilder(SceneBuilder):
                 npy_fp = (
                     Path(ASSET_DIR)
                     / "scene_datasets/replica_cad_dataset/configs/scenes"
-                    / (
-                        Path(self.build_configs[bci]).stem
-                        + f".{str(self.env.robot_uids)}.navigable_positions.npy"
-                    )
+                    / (Path(self.build_configs[bci]).stem + f".{str(self.env.robot_uids)}.navigable_positions.npy")
                 )
                 if npy_fp.exists():
                     self._navigable_positions[bci] = np.load(npy_fp)
@@ -294,13 +264,9 @@ class ReplicaCADSceneBuilder(SceneBuilder):
         actor: Actor,
         disable_base_collisions=False,
     ):
-        actor.set_collision_group_bit(
-            group=2, bit_idx=FETCH_WHEELS_COLLISION_BIT, bit=1
-        )
+        actor.set_collision_group_bit(group=2, bit_idx=FETCH_WHEELS_COLLISION_BIT, bit=1)
         if disable_base_collisions:
-            actor.set_collision_group_bit(
-                group=2, bit_idx=FETCH_BASE_COLLISION_BIT, bit=1
-            )
+            actor.set_collision_group_bit(group=2, bit_idx=FETCH_BASE_COLLISION_BIT, bit=1)
 
     @property
     def navigable_positions(self) -> List[np.ndarray]:

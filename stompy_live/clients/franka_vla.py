@@ -5,9 +5,10 @@ import requests
 import gymnasium as gym
 from mani_skill.utils.wrappers.flatten import FlattenActionSpaceWrapper, FlattenRGBDObservationWrapper
 import torch
-import stompy_live.envs.franka_push_cube # noqa: F401
+import stompy_live.envs.franka_push_cube  # noqa: F401
 
 import json_numpy
+
 json_numpy.patch()
 import pygame
 import numpy as np
@@ -53,13 +54,13 @@ while True:
 
             surface = pygame.surfarray.make_surface(upsized_image)
             window.blit(surface, (0, 0))
-            
+
             pygame.display.update()
 
             obs, reward, terminated, truncated, info = envs.step(torch.tensor(action, dtype=torch.float))
 
             done = terminated or truncated
-            
+
     except queue.Empty:
         time.sleep(1)
     except KeyboardInterrupt:

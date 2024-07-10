@@ -26,7 +26,11 @@ from mani_skill.envs.scene import ManiSkillScene
 from mani_skill.utils.scene_builder import SceneBuilder
 from mani_skill.utils.structs import Actor, Articulation, Pose
 
-from mani_skill.utils.scene_builder.ai2thor.constants import SCENE_SOURCE_TO_DATASET, AI2BuildConfig, load_ai2thor_metadata
+from mani_skill.utils.scene_builder.ai2thor.constants import (
+    SCENE_SOURCE_TO_DATASET,
+    AI2BuildConfig,
+    load_ai2thor_metadata,
+)
 
 from mani_skill.utils.scene_builder.ai2thor.scene_builder import DATASET_CONFIG_DIR
 
@@ -34,9 +38,7 @@ from mani_skill.utils.scene_builder.registration import register_scene_builder
 
 from stompy_live.agents.stompy.stompy import Stompy
 
-ALL_SCENE_CONFIGS = (
-    dict()
-)  # cached results mapping scene dataset ID to a list of scene configurations
+ALL_SCENE_CONFIGS = dict()  # cached results mapping scene dataset ID to a list of scene configurations
 
 OBJECT_SEMANTIC_ID_MAPPING, SEMANTIC_ID_OBJECT_MAPPING, MOVEABLE_OBJECT_IDS = (
     None,
@@ -67,6 +69,7 @@ FETCH_BUILD_CONFIG_IDX_TO_START_POS = {
     9: (1, 1),
 }
 
+
 @register_scene_builder("ai2thor")
 class AI2THORBaseSceneBuilder(SceneBuilder):
     """
@@ -85,7 +88,11 @@ class AI2THORBaseSceneBuilder(SceneBuilder):
         ) = load_ai2thor_metadata()
         self.build_configs: List[AI2BuildConfig] = []
         if self.scene_dataset not in ALL_SCENE_CONFIGS:
-            self.build_configs = [AI2BuildConfig(config_file="./FloorPlan6_physics.scene_instance.json", source="iTHOR", spawn_pos_file=None)]
+            self.build_configs = [
+                AI2BuildConfig(
+                    config_file="./FloorPlan6_physics.scene_instance.json", source="iTHOR", spawn_pos_file=None
+                )
+            ]
         else:
             self.build_configs = ALL_SCENE_CONFIGS[self.scene_dataset]
 
@@ -128,15 +135,12 @@ class AI2THORBaseSceneBuilder(SceneBuilder):
         bgs = [None] * self.env.num_envs
 
         for bci in np.unique(build_config_idxs):
-
             env_idx = [i for i, v in enumerate(build_config_idxs) if v == bci]
             unique_id = "scs-" + str(env_idx).replace(" ", "")
             build_config: AI2BuildConfig = self.build_configs[bci]
 
             dataset = SCENE_SOURCE_TO_DATASET[build_config.source]
-            with open(
-                osp.join(dataset.dataset_path, build_config.config_file), "rb"
-            ) as f:
+            with open(osp.join(dataset.dataset_path, build_config.config_file), "rb") as f:
                 build_config_json = json.load(f)
 
             bg_path = str(
@@ -146,16 +150,12 @@ class AI2THORBaseSceneBuilder(SceneBuilder):
             )
             builder = self.scene.create_actor_builder()
 
-            bg_q = transforms3d.quaternions.axangle2quat(
-                np.array([1, 0, 0]), theta=np.deg2rad(90)
-            )
+            bg_q = transforms3d.quaternions.axangle2quat(np.array([1, 0, 0]), theta=np.deg2rad(90))
             if self.scene_dataset == "ProcTHOR":
                 # for some reason the scene needs to rotate around y-axis by 90 degrees for ProcTHOR scenes from hssd dataset
                 bg_q = transforms3d.quaternions.qmult(
                     bg_q,
-                    transforms3d.quaternions.axangle2quat(
-                        np.array([0, -1, 0]), theta=np.deg2rad(90)
-                    ),
+                    transforms3d.quaternions.axangle2quat(np.array([0, -1, 0]), theta=np.deg2rad(90)),
                 )
             bg_pose = sapien.Pose(q=bg_q)
             builder.add_visual_from_file(bg_path, pose=bg_pose)
@@ -174,9 +174,7 @@ class AI2THORBaseSceneBuilder(SceneBuilder):
                 )
                 actor_name = f"{object['template_name']}_{global_id}"
                 global_id += 1
-                q = transforms3d.quaternions.axangle2quat(
-                    np.array([1, 0, 0]), theta=np.deg2rad(90)
-                )
+                q = transforms3d.quaternions.axangle2quat(np.array([1, 0, 0]), theta=np.deg2rad(90))
                 rot_q = [
                     object["rotation"][0],
                     object["rotation"][1],
@@ -201,9 +199,7 @@ class AI2THORBaseSceneBuilder(SceneBuilder):
                     ]
                     pose = sapien.Pose(p=position, q=q)
                     builder.add_visual_from_file(str(model_path), pose=pose)
-                    builder.add_nonconvex_collision_from_file(
-                        str(model_path), pose=pose
-                    )
+                    builder.add_nonconvex_collision_from_file(str(model_path), pose=pose)
                     builder.set_scene_idxs(env_idx)
                     actor = builder.build_static(name=f"{unique_id}_{actor_name}")
                 else:
@@ -248,7 +244,6 @@ class AI2THORBaseSceneBuilder(SceneBuilder):
         )
 
     def initialize(self, env_idx):
-
         if self.env.robot_uids == "fetch":
             agent: Fetch = self.env.agent
             rest_keyframe = agent.keyframes["rest"]
@@ -256,10 +251,7 @@ class AI2THORBaseSceneBuilder(SceneBuilder):
 
             agent.robot.set_pose(
                 Pose.create_from_pq(
-                    p=[
-                        [*FETCH_BUILD_CONFIG_IDX_TO_START_POS[bci], 0.02]
-                        for bci in self.build_config_idxs
-                    ]
+                    p=[[*FETCH_BUILD_CONFIG_IDX_TO_START_POS[bci], 0.02] for bci in self.build_config_idxs]
                 )
             )
 
@@ -282,13 +274,9 @@ class AI2THORBaseSceneBuilder(SceneBuilder):
         actor: Actor,
         disable_base_collisions=False,
     ):
-        actor.set_collision_group_bit(
-            group=2, bit_idx=FETCH_WHEELS_COLLISION_BIT, bit=1
-        )
+        actor.set_collision_group_bit(group=2, bit_idx=FETCH_WHEELS_COLLISION_BIT, bit=1)
         if disable_base_collisions:
-            actor.set_collision_group_bit(
-                group=2, bit_idx=FETCH_BASE_COLLISION_BIT, bit=1
-            )
+            actor.set_collision_group_bit(group=2, bit_idx=FETCH_BASE_COLLISION_BIT, bit=1)
 
     @property
     def navigable_positions(self) -> List[np.ndarray]:
