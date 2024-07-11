@@ -125,11 +125,12 @@ class SceneManipulationEnv(BaseEnv):
 
     @property
     def _default_sensor_configs(self):
-        if self.robot_uids == "fetch":
-            return []
+        if self.scene_builder == "NewReplicaCAD":
+            pose = sapien_utils.look_at([2.5, -2.5, 3], [0.0, 0.0, 0])
+        else:
+            pose = Pose([0.307874, -2.75969, 2.44259], [0.645961, -0.29201, 0.294314, 0.640971])
 
-        pose = sapien_utils.look_at([0.3, 0, 0.6], [-0.1, 0, 0.1])
-        return [CameraConfig("base_camera", pose, 128, 128, np.pi / 2, 0.01, 100)]
+        return [CameraConfig("base_camera", pose, 512, 512, 1, 0.01, 100)]
 
     @property
     def _default_human_render_camera_configs(self):
