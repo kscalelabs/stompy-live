@@ -38,7 +38,7 @@ if args.streamkey is not None:
 else:
     render_mode = "human"
 env_kwargs = dict(obs_mode="state", control_mode="pd_joint_delta_pos", render_mode=render_mode, sim_backend="gpu")
-env = gym.make("New-SceneManipulation-v1", **env_kwargs, scene_builder_cls="ai2thor")
+env = gym.make("New-SceneManipulation-v1", **env_kwargs)
 if isinstance(env.action_space, gym.spaces.Dict):
     env = FlattenActionSpaceWrapper(env)
 assert isinstance(env.single_action_space, gym.spaces.Box), "only continuous action space is supported"
