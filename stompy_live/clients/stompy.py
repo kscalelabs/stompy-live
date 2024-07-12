@@ -23,6 +23,7 @@ if args.streamkey is not None:
         'ffmpeg',
         '-y',
         '-f', 'rawvideo',
+        '-r', '15',
         '-vcodec', 'rawvideo',
         '-pix_fmt', 'rgb24',
         '-s', '512x512',
@@ -33,6 +34,7 @@ if args.streamkey is not None:
         '-preset', 'veryfast',
         '-f', 'flv',
         f'rtmp://live.twitch.tv/app/{args.streamkey}'
+        '-fps_mode', '1',
     ]
     process = subprocess.Popen(command, stdin=subprocess.PIPE)
 else:

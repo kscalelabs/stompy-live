@@ -145,18 +145,7 @@ class SceneManipulationEnv(BaseEnv):
                 0.01,
                 100,
             )
-            robot_camera_pose = sapien_utils.look_at([2, 0, 1], [0, 0, -1])
-            robot_camera_config = CameraConfig(
-                "robot_render_camera",
-                robot_camera_pose,
-                512,
-                512,
-                1.5,
-                0.01,
-                100,
-                mount=self.agent.torso_lift_link,
-            )
-            return [room_camera_config, robot_camera_config]
+            return [room_camera_config]
 
         if self.robot_uids == "panda":
             pose = sapien_utils.look_at([0.4, 0.4, 0.8], [0.0, 0.0, 0.4])
