@@ -26,9 +26,11 @@ out*/
 *.h5
 *.json
 *.zip
+*.png
 runs/
 stompy_live/assets/stompyarm/
 
-data_scripts/wandb/
-data_scripts/experimental/
-data_scripts/nohup.out
+training_scripts/wandb/
+training_scripts/experimental/
+training_scripts/nohup.out
+wandb/
