@@ -38,10 +38,12 @@ if args.streamkey is not None:
 else:
     render_mode = "human"
 env_kwargs = dict(obs_mode="state", control_mode="pd_joint_delta_pos", render_mode=render_mode, sim_backend="gpu")
-env = gym.make("New-SceneManipulation-v1", **env_kwargs)
+env = gym.make("New-SceneManipulation-v1", **env_kwargs, robot_uids="fetch")
 if isinstance(env.action_space, gym.spaces.Dict):
     env = FlattenActionSpaceWrapper(env)
 assert isinstance(env.single_action_space, gym.spaces.Box), "only continuous action space is supported"
+
+time = 0
 
 while True:
     obs, info = env.reset()
@@ -50,8 +52,12 @@ while True:
 
     while not done:
         # Get action from the model hosted at the API
+        time += 1
         with torch.no_grad():
-            action = env.action_space.sample()
+            if time > 30 and time % 13 == 0:
+                action = env.action_space.sample() * 100
+            elif time <= 30:
+                action = env.action_space.sample()
 
         obs, reward, terminated, truncated, info = env.step(action)
 
