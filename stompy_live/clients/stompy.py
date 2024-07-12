@@ -32,9 +32,10 @@ if args.streamkey is not None:
         '-c:v', 'libx264',
         '-pix_fmt', 'yuv420p',
         '-preset', 'veryfast',
+        '-b:v', '3000k',  # Set video bitrate
+        '-bufsize', '6000k',  # Set buffer size
         '-f', 'flv',
         f'rtmp://live.twitch.tv/app/{args.streamkey}'
-        '-fps_mode', '1',
     ]
     process = subprocess.Popen(command, stdin=subprocess.PIPE)
 else:
