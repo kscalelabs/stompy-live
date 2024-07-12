@@ -65,13 +65,14 @@ from datasets import PushCubeDataset
 # Sane Defaults
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
+
 @dataclass
 class EvaluateConfig:
-    data_path = '/ephemeral/users/tgao/data/cube_step_angles_brown_table.h5' # Path to h5 file
+    data_path = '/ephemeral/users/tgao/val_data/brown_table_val.h5' # Path to h5 file
     
     # fmt: off
     # vla_path: str = "openvla/openvla-7b"
-    vla_path: str = "/ephemeral/users/tgao/model_angles/openvla-7b+PushCubeDataset+b16+lr-2e-05cube_step_angles+lora-r32+dropout-0.0+PushCubeDataset+b16+lr-2e-05cube_step_angles_brown_table+lora-r32+dropout-0.0"
+    vla_path: str = "/ephemeral/users/tgao/model_angles/cube_step_angles_brown_table"
     # vla_path: str = "/ephemeral/users/tgao/model_angles/openvla-7b+PushCubeDataset+b16+lr-2e-05cube_step_angles_brown_table"
     
     # Directory Paths
@@ -102,16 +103,11 @@ def evaluate(cfg: EvaluateConfig) -> None:
     torch.cuda.set_device(device_id := distributed_state.local_process_index)
     torch.cuda.empty_cache()
     
-    # dist.init_process_group(backend='nccl')  # or 'gloo' if you're not using GPUs
-    
-    # device_id = int(os.environ['LOCAL_RANK'])
-    # torch.cuda.set_device(device_id)
-    
     # Configure Unique Experiment ID & Log Directory
     exp_id = cfg.data_path.split('/')[-1].split('.')[0]
     
-    run_dir, adapter_dir = cfg.run_root_dir / exp_id, cfg.adapter_tmp_dir / exp_id
-    os.makedirs(run_dir, exist_ok=True)
+    # run_dir, adapter_dir = cfg.run_root_dir / exp_id, cfg.adapter_tmp_dir / exp_id
+    # os.makedirs(run_dir, exist_ok=True)
 
     # Quantization Config =>> only if LoRA fine-tuning
     quantization_config = None

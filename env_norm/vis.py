@@ -68,8 +68,8 @@ def create_image_grid(images, rows, cols, thumbnail_size=(100, 100)):
     return grid_image
 
 if __name__ == '__main__':
-    # PATH = '/ephemeral/users/tgao/data/cube_with_masked_images_v1.h5'
-    PATH = '/ephemeral/users/tgao/data/cube_step_angles_brown_table.h5'
+    PATH = '/ephemeral/users/tgao/data/cube_with_masked_images_v1.h5'
+    # PATH = '/ephemeral/users/tgao/data/cube_step_angles_brown_table.h5'
     
     # save_steps('/ephemeral/users/tgao/data', PATH)
     

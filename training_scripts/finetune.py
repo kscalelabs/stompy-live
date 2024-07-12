@@ -69,15 +69,16 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 @dataclass
 class FinetuneConfig:
-    data_path = '/ephemeral/users/tgao/data/cube_step_angles_brown_table.h5' # Path to h5 file
+    data_path = '/ephemeral/users/tgao/data/random_start_v1_3000.h5' # Path to h5 file
     # fmt: off
     # vla_path: str = "openvla/openvla-7b"
-    vla_path: str = "/ephemeral/users/tgao/model_angles/openvla-7b+PushCubeDataset+b16+lr-2e-05cube_step_angles+lora-r32+dropout-0.0+PushCubeDataset+b16+lr-2e-05cube_step_angles_brown_table+lora-r32+dropout-0.0"
+    vla_path: str = "/ephemeral/users/tgao/model_angles/cube_step_angles_brown_table"
     dataset_name: str = "PushCubeDataset"
-    run_root_dir: Path = Path("/ephemeral/users/tgao/model_angles")                               # Path to directory to store logs & checkpoints
+    run_root_dir: Path = Path("/ephemeral/users/tgao/model_random")                               # Path to directory to store logs & checkpoints
     adapter_tmp_dir: Path = Path("/ephemeral/users/tgao/adapter-tmp")                    # Temporary directory for LoRA weights before fusing
 
     # Fine-tuning Parameters
+    num_epochs: int = 1
     batch_size: int = 16                                            # Fine-tuning batch size
     max_steps: int = 5000                                        # Max number of fine-tuning steps
     save_steps: int = 1000                                        # Interval for checkpoint saving
@@ -238,7 +239,7 @@ def finetune(cfg: FinetuneConfig) -> None:
 
     wandb_prev_idx = 0
     
-    for epoch in range(4):
+    for epoch in range(cfg.num_epochs):
         print(f"Starting Epoch {epoch}")
         
         last_batch = len(dataloader) - 1

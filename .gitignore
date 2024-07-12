@@ -28,3 +28,7 @@ out*/
 *.zip
 runs/
 stompy_live/assets/stompyarm/
+
+data_scripts/wandb/
+data_scripts/experimental/
+data_scripts/nohup.out
