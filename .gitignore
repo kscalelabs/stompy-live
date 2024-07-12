@@ -34,3 +34,4 @@ training_scripts/wandb/
 training_scripts/experimental/
 training_scripts/nohup.out
 wandb/
+env_norm/
