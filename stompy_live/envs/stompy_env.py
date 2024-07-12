@@ -17,7 +17,7 @@ from stompy_live.utils.scene_builders.ai2thor import AI2THORBaseSceneBuilder  # 
 from stompy_live.utils.scene_builders.replicacad import ReplicaCADSceneBuilder  # noqa: F401
 
 
-@register_env("New-SceneManipulation-v1", max_episode_steps=float("inf"))
+@register_env("New-SceneManipulation-v1", max_episode_steps=10000)
 class SceneManipulationEnv(BaseEnv):
     """A base environment for simulating manipulation tasks in more complex scenes. Creating this base environment is only useful
     for explorations/visualization, there are no success/failure metrics or rewards.
@@ -125,7 +125,9 @@ class SceneManipulationEnv(BaseEnv):
 
     @property
     def _default_sensor_configs(self):
-        if self.scene_builder == "NewReplicaCAD":
+        if self.robot_uids == "fetch" and self.scene_builder == "NewReplicaCAD":
+            pose = Pose([3.07349, -7.32307, 2.44359], [0.553155, -0.0498532, 0.033322, 0.830917])
+        elif self.scene_builder == "NewReplicaCAD":
             pose = sapien_utils.look_at([2.5, -2.5, 3], [0.0, 0.0, 0])
         else:
             pose = Pose([0.307874, -2.75969, 2.44259], [0.645961, -0.29201, 0.294314, 0.640971])
@@ -135,7 +137,7 @@ class SceneManipulationEnv(BaseEnv):
     @property
     def _default_human_render_camera_configs(self):
         if self.robot_uids == "fetch":
-            room_camera_pose = sapien_utils.look_at([2.5, -2.5, 3], [0.0, 0.0, 0])
+            room_camera_pose = Pose([3.07349, -7.32307, 2.44359], [0.553155, -0.0498532, 0.033322, 0.830917])
             room_camera_config = CameraConfig(
                 "render_camera",
                 room_camera_pose,
