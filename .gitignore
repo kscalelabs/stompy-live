@@ -23,5 +23,15 @@ out*/
 #Checkpoints, h5 files, recordings
 *.pt
 *.mp4
+*.h5
+*.json
+*.zip
+*.png
 runs/
 stompy_live/assets/stompyarm/
+
+training_scripts/wandb/
+training_scripts/experimental/
+training_scripts/nohup.out
+wandb/
+env_norm/
