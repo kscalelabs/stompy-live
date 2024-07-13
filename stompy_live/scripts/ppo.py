@@ -238,8 +238,10 @@ if __name__ == "__main__":
             eval_output_dir = f"{os.path.dirname(args.checkpoint)}/test_videos"
         print(f"Saving eval videos to {eval_output_dir}")
         if args.save_train_video_freq is not None:
+
             def save_video_trigger(x):
                 return x // args.num_steps % args.save_train_video_freq == 0
+
             envs = RecordEpisode(
                 envs,
                 output_dir=f"runs/{run_name}/train_videos",

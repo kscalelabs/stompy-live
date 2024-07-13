@@ -1,6 +1,5 @@
 from typing import Any, Dict, Union
 
-import numpy as np
 import torch
 from mani_skill.agents.robots import Fetch, Panda
 from mani_skill.envs.sapien_env import BaseEnv

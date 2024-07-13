@@ -1,12 +1,15 @@
 """Stompy client. Just performs random actions for now."""
 
 import argparse
-import cv2
 import subprocess
-from typing import Optional
 
 parser = argparse.ArgumentParser(description="Client that simulates Stompy")
-parser.add_argument("--streamkey", type=str, default=None, help="Streamer key for streaming to Twitch. Passing in this argument will stream the output to Twitch.")
+parser.add_argument(
+    "--streamkey",
+    type=str,
+    default=None,
+    help="Streamer key for streaming to Twitch. Passing in this argument will stream the output to Twitch.",
+)
 args = parser.parse_args()
 
 import gymnasium as gym
@@ -20,22 +23,34 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 if args.streamkey is not None:
     render_mode = "rgb_array"
     command = [
-        'ffmpeg',
-        '-y',
-        '-f', 'rawvideo',
-        '-r', '15',
-        '-vcodec', 'rawvideo',
-        '-pix_fmt', 'rgb24',
-        '-s', '512x512',
-        '-re', # for real-time output
-        '-i', '-',  # The input comes from a pipe
-        '-c:v', 'libx264',
-        '-pix_fmt', 'yuv420p',
-        '-preset', 'veryfast',
-        '-b:v', '3000k',  # Set video bitrate
-        '-bufsize', '6000k',  # Set buffer size
-        '-f', 'flv',
-        f'rtmp://live.twitch.tv/app/{args.streamkey}'
+        "ffmpeg",
+        "-y",
+        "-f",
+        "rawvideo",
+        "-r",
+        "15",
+        "-vcodec",
+        "rawvideo",
+        "-pix_fmt",
+        "rgb24",
+        "-s",
+        "512x512",
+        "-re",  # for real-time output
+        "-i",
+        "-",  # The input comes from a pipe
+        "-c:v",
+        "libx264",
+        "-pix_fmt",
+        "yuv420p",
+        "-preset",
+        "veryfast",
+        "-b:v",
+        "3000k",  # Set video bitrate
+        "-bufsize",
+        "6000k",  # Set buffer size
+        "-f",
+        "flv",
+        f"rtmp://live.twitch.tv/app/{args.streamkey}",
     ]
     process = subprocess.Popen(command, stdin=subprocess.PIPE)
 else:

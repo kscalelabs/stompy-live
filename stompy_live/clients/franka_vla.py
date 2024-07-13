@@ -2,8 +2,11 @@ import queue
 import time
 from threading import Thread
 
+import cv2
 import gymnasium as gym
 import json_numpy
+import numpy as np
+import pygame
 import requests
 import torch
 from mani_skill.utils.wrappers.flatten import FlattenActionSpaceWrapper, FlattenRGBDObservationWrapper
@@ -12,9 +15,6 @@ import stompy_live.envs.franka_push_cube  # noqa: F401
 from twitch.client import init, message_queue
 
 json_numpy.patch()
-import cv2
-import numpy as np
-import pygame
 
 window = pygame.display.set_mode((1024, 1024))
 
