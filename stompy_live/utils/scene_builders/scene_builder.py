@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, List, Union, Optional
 from functools import cached_property
+from typing import TYPE_CHECKING, Any, Dict, List, NoReturn, Optional, Union
 
 import torch
 from gymnasium import spaces
@@ -13,7 +13,7 @@ from mani_skill.utils.structs.types import Array
 
 
 class SceneBuilder:
-    """Base class for defining scene builders that can be reused across tasks"""
+    """Base class for defining scene builders that can be reused across tasks."""
 
     env: BaseEnv
     """Env which scenebuilder will build in."""
@@ -39,32 +39,24 @@ class SceneBuilder:
     navigable_positions: Optional[List[Union[Array, spaces.Box]]] = None
     """Some scenes allow for mobile robots to move through these scene. In this case, a list of navigable positions per env_idx (e.g. loaded from a navmesh) should be provided for easy initialization. Can be a discretized list, range, spaces.Box, etc."""
 
-    def __init__(self, env, robot_init_qpos_noise=0.02):
+    def __init__(self, env, robot_init_qpos_noise=0.02) -> None:
         self.env = env
         self.robot_init_qpos_noise = robot_init_qpos_noise
 
-    def build(self, build_config_idxs: List[int] = None):
-        """
-        Should create actor/articulation builders and only build objects into the scene without initializing pose, qpos, velocities etc.
-        """
+    def build(self, build_config_idxs: List[int] = None) -> NoReturn:
+        """Should create actor/articulation builders and only build objects into the scene without initializing pose, qpos, velocities etc."""
         raise NotImplementedError()
 
-    def initialize(self, env_idx: torch.Tensor, init_config_idxs: List[int] = None):
-        """
-        Should initialize the scene, which can include e.g. setting the pose of all objects, changing the qpos/pose of articulations/robots etc.
-        """
+    def initialize(self, env_idx: torch.Tensor, init_config_idxs: List[int] = None) -> NoReturn:
+        """Should initialize the scene, which can include e.g. setting the pose of all objects, changing the qpos/pose of articulations/robots etc."""
         raise NotImplementedError()
 
     def sample_build_config_idxs(self) -> List[int]:
-        """
-        Sample idxs of build configs for easy scene randomization. Should be changed to fit shape of self.build_configs.
-        """
+        """Sample idxs of build configs for easy scene randomization. Should be changed to fit shape of self.build_configs."""
         return torch.randint(low=0, high=len(self.build_configs), size=(self.env.num_envs,)).tolist()
 
     def sample_init_config_idxs(self) -> List[int]:
-        """
-        Sample idxs of init configs for easy scene randomization. Should be changed to fit shape of self.init_configs.
-        """
+        """Sample idxs of init configs for easy scene randomization. Should be changed to fit shape of self.init_configs."""
         return torch.randint(low=0, high=len(self.init_configs), size=(self.env.num_envs,)).tolist()
 
     @cached_property

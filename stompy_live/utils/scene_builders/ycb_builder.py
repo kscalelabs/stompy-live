@@ -7,7 +7,7 @@ from mani_skill.utils.io_utils import load_json
 YCB_DATASET = dict()
 
 
-def _load_ycb_dataset():
+def _load_ycb_dataset() -> None:
     global YCB_DATASET
     YCB_DATASET = {
         "model_data": load_json(ASSET_DIR / "assets/mani_skill2_ycb/info_pick_v0.json"),

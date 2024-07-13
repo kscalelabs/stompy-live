@@ -6,20 +6,17 @@ from dataclasses import dataclass
 from typing import Optional
 
 import gymnasium as gym
-import numpy as np
-import torch
-import torch.nn as nn
-import torch.optim as optim
-import tyro
-from torch.distributions.normal import Normal
-from torch.utils.tensorboard import SummaryWriter
 
 # ManiSkill specific imports
-import mani_skill.envs
+import numpy as np
+import torch
+import tyro
 from mani_skill.utils.wrappers.flatten import FlattenActionSpaceWrapper, FlattenRGBDObservationWrapper
 from mani_skill.utils.wrappers.record import RecordEpisode
 from mani_skill.vector.wrappers.gymnasium import ManiSkillVectorEnv
-
+from torch import nn, optim
+from torch.distributions.normal import Normal
+from torch.utils.tensorboard import SummaryWriter
 
 """
 Running PPO on PickCube-v1 from maniskill for testing
@@ -32,9 +29,9 @@ python stompy_live/scripts/ppo_rgb.py --env_id="PushCube-v1" \
 Running PPO on stompy arm in the push cube environment
 python stompy_live/scripts/ppo.py --env_id="SPushCube-v0" \
   --num_envs=2048 --update_epochs=8 --num_minibatches=32 \
-  --total_timesteps=100_000_000 --eval_freq=10 
+  --total_timesteps=100_000_000 --eval_freq=10
 
-Evaluating 
+Evaluating
 python stompy_live/scripts/ppo.py --env_id="SPushCube-v0" \
    --evaluate --checkpoint=runs/SPushCube-v0__ppo__1__1719554639/ckpt_291.pt \
    --num_eval_envs=1 --num-eval-steps=1000
@@ -136,7 +133,7 @@ def layer_init(layer, std=np.sqrt(2), bias_const=0.0):
 
 
 class DictArray(object):
-    def __init__(self, buffer_shape, element_space, data_dict=None, device=None):
+    def __init__(self, buffer_shape, element_space, data_dict=None, device=None) -> None:
         self.buffer_shape = buffer_shape
         if data_dict:
             self.data = data_dict
@@ -157,7 +154,7 @@ class DictArray(object):
             return self.data[index]
         return {k: v[index] for k, v in self.data.items()}
 
-    def __setitem__(self, index, value):
+    def __setitem__(self, index, value) -> None:
         if isinstance(index, str):
             self.data[index] = value
         for k, v in value.items():
@@ -180,7 +177,7 @@ class DictArray(object):
 
 
 class NatureCNN(nn.Module):
-    def __init__(self, sample_obs):
+    def __init__(self, sample_obs) -> None:
         super().__init__()
 
         extractors = {}
@@ -188,7 +185,7 @@ class NatureCNN(nn.Module):
         self.out_features = 0
         feature_size = 256
         in_channels = sample_obs["rgb"].shape[-1]
-        image_size = (sample_obs["rgb"].shape[1], sample_obs["rgb"].shape[2])
+        (sample_obs["rgb"].shape[1], sample_obs["rgb"].shape[2])
         state_size = sample_obs["state"].shape[-1]
 
         # here we use a NatureCNN architecture to process images, but any architecture is permissble here
@@ -234,7 +231,7 @@ class NatureCNN(nn.Module):
 
 
 class Agent(nn.Module):
-    def __init__(self, envs, sample_obs):
+    def __init__(self, envs, sample_obs) -> None:
         super().__init__()
         self.feature_net = NatureCNN(sample_obs=sample_obs)
         # latent_size = np.array(envs.unwrapped.single_observation_space.shape).prod()
@@ -338,7 +335,10 @@ if __name__ == "__main__":
             eval_output_dir = f"{os.path.dirname(args.checkpoint)}/test_videos"
         print(f"Saving eval videos to {eval_output_dir}")
         if args.save_train_video_freq is not None:
-            save_video_trigger = lambda x: (x // args.num_steps) % args.save_train_video_freq == 0
+
+            def save_video_trigger(x):
+                return x // args.num_steps % args.save_train_video_freq == 0
+
             envs = RecordEpisode(
                 envs,
                 output_dir=f"runs/{run_name}/train_videos",
@@ -376,14 +376,14 @@ if __name__ == "__main__":
     eps_returns = torch.zeros(args.num_envs, dtype=torch.float, device=device)
     eps_lens = np.zeros(args.num_envs)
     place_rew = torch.zeros(args.num_envs, device=device)
-    print(f"####")
+    print("####")
     print(
         f"args.num_iterations={args.num_iterations} args.num_envs={args.num_envs} args.num_eval_envs={args.num_eval_envs}"
     )
     print(
         f"args.minibatch_size={args.minibatch_size} args.batch_size={args.batch_size} args.update_epochs={args.update_epochs}"
     )
-    print(f"####")
+    print("####")
     agent = Agent(envs, sample_obs=next_obs).to(device)
     optimizer = optim.Adam(agent.parameters(), lr=args.learning_rate, eps=1e-5)
 

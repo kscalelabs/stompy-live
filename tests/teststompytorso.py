@@ -3,6 +3,7 @@
 import gymnasium as gym
 import mani_skill.envs  # noqa: F401
 import numpy as np  # noqa: F401
+import torch
 from mani_skill.envs.sapien_env import BaseEnv  # noqa: F401
 
 from stompy_live.agents.stompytorso.stompytorso import StompyTorso  # noqa: F401
@@ -11,7 +12,6 @@ from stompy_live.envs.stompytorso_env import StompyPushCubeEnv  # noqa: F401
 
 # model = model_client()
 language_instruction = "move the apple to the right"
-import torch
 
 torch.cuda.empty_cache()
 # torch.cuda.reset_peak_memory_stats()
