@@ -56,7 +56,8 @@ class HumanoidStandEnv(BaseEnv):
     #     return self.compute_dense_reward(obs=obs, action=action, info=info) / max_reward
 
 
-# Different robot embodiments require different configurations for optimal running and nicer render videos, we define those specifics below
+# Different robot embodiments require different configurations for optimal
+# running and nicer render videos, we define those specifics below
 @register_env("UnitreeH1Stand-v1", max_episode_steps=1000)
 class UnitreeH1StandEnv(HumanoidStandEnv):
     SUPPORTED_ROBOTS = ["unitree_h1_simplified"]
