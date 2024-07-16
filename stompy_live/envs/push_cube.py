@@ -125,26 +125,6 @@ class StompyPushCubeEnv(PushCubeEnv):
         }
 
     def compute_dense_reward(self, obs: Any, action: Array, info: dict) -> Tensor:  # noqa: ANN401
-        # We also create a pose marking where the robot should push the cube from that is easiest (pushing from behind the cube)
-        # tcp_push_pose = Pose.create_from_pq(
-        #     p=self.obj.pose.p
-        #     + torch.tensor([-self.cube_half_size - 0.005, 0, 0], device=self.device)
-        # )
-        # tcp_to_push_pose = tcp_push_pose.p - self.agent.tcp.pose.p
-        # tcp_to_push_pose_dist = torch.linalg.norm(tcp_to_push_pose, axis=1)
-        # reaching_reward = 1 - torch.tanh(5 * tcp_to_push_pose_dist)
-        # reward = reaching_reward
-
-        # # compute a placement reward to encourage robot to move the cube to the center of the goal region
-        # # we further multiply the place_reward by a mask reached so we only add the place reward if the robot has reached the desired push pose
-        # # This reward design helps train RL agents faster by staging the reward out.
-        # reached = tcp_to_push_pose_dist < 0.01
-        # obj_to_goal_dist = torch.linalg.norm(
-        #     self.obj.pose.p[..., :2] - self.goal_region.pose.p[..., :2], axis=1
-        # )
-        # place_reward = 1 - torch.tanh(5 * obj_to_goal_dist)
-        # reward += place_reward * reached
-
         # reward for moving cube near
         print(self.obj.pose.p[..., :2])
         obj_to_goal_dist = torch.linalg.norm(self.obj.pose.p[..., :2] - self.goal_region.pose.p[..., :2], axis=1)
