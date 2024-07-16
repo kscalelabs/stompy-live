@@ -18,22 +18,25 @@ from stompy_live.utils.scene_builders.replicacad import ReplicaCADSceneBuilder  
 
 @register_env("New-SceneManipulation-v1", max_episode_steps=10000)
 class SceneManipulationEnv(BaseEnv):
-    """A base environment for simulating manipulation tasks in more complex scenes. Creating this base environment is only useful
-    for explorations/visualization, there are no success/failure metrics or rewards.
+    """A base environment for simulating manipulation tasks in more complex scenes. Creating this base environment is
+    only useful for explorations/visualization, there are no success/failure metrics or rewards.
 
     Args:
         robot_uids: Which robot to place into the scene. Default is "fetch"
 
         fixed_scene:
-            When True, will never reconfigure the environment during resets unless you run env.reset(seed=seed, options=dict(reconfigure=True))
-            and explicitly reconfigure. If False, will reconfigure every reset.
+            When True, will never reconfigure the environment during resets unless you run env.reset(seed=seed,
+            options=dict(reconfigure=True)) and explicitly reconfigure. If False, will reconfigure every reset.
 
         scene_builder_cls:
-            Scene builder class to build a scene with. Default is ReplicaCAD. Furthermore, any of the AI2THOR SceneBuilders are supported in
-            this environment.
+            Scene builder class to build a scene with. Default is ReplicaCAD. Furthermore, any of the AI2THOR
+            SceneBuilders are supported in this environment.
 
-        build_config_idxs (optional): which build configs (static builds) to sample. Your scene_builder_cls may or may not require these.
-        init_config_idxs (optional): which init configs (additional init options) to sample. Your scene_builder_cls may or may not require these.
+        build_config_idxs (optional):
+            which build configs (static builds) to sample. Your scene_builder_cls may or may not require these.
+
+        init_config_idxs (optional):
+            which init configs (additional init options) to sample. Your scene_builder_cls may or may not require these.
     """
 
     SUPPORTED_ROBOTS = ["panda", "fetch", "stompy_latest"]
