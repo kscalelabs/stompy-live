@@ -28,7 +28,12 @@ def parse_args(args=None):
         "--shader",
         default="default",
         type=str,
-        help="Change shader used for rendering. Default is 'default' which is very fast. Can also be 'rt' for ray tracing and generating photo-realistic renders. Can also be 'rt-fast' for a faster but lower quality ray-traced renderer",
+        help=(
+            "Change shader used for rendering."
+            "Default is 'default' which is very fast."
+            "Can also be 'rt' for ray tracing and generating photo-realistic renders."
+            "Can also be 'rt-fast' for a faster but lower quality ray-traced renderer."
+        ),
     )
     parser.add_argument("--record-dir", type=str)
     parser.add_argument(
