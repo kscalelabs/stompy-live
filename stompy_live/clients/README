@@ -1,3 +1,14 @@
 These are the maniskill clients. They interface with the APIs running the
 models, take the output of the APIs, and render it via maniskill. Then it gets
 an image from maniskill and feed it to the API, repeating the cycle.
+
+Stompy
+------
+
+To set up stompy.py download
+
+https://drive.google.com/drive/folders/1dNL8i4sfu5N6ojUMOb9YDcCMRc3jRXg2
+
+and unzip in stompy_live/assets
+
+Then replace "fused" with "meshes/fused" in the main urdf file (robot_7dof_arm_merged_simplfied.urdf).

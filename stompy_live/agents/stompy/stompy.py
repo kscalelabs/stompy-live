@@ -2,7 +2,7 @@
 
 import numpy as np
 import sapien
-from mani_skill import PACKAGE_ASSET_DIR
+from stompy_live.utils.config import get_model_dir
 from mani_skill.agents.base_agent import BaseAgent, Keyframe
 from mani_skill.agents.controllers import PDJointPosControllerConfig
 from mani_skill.agents.registration import register_agent
@@ -10,10 +10,10 @@ from mani_skill.sensors.camera import CameraConfig
 from transforms3d import euler
 
 
-@register_agent()  # uncomment this if you want to register the agent so you can instantiate it by ID when creating environments
+@register_agent("stompy_latest")  # uncomment this if you want to register the agent so you can instantiate it by ID when creating environments
 class Stompy(BaseAgent):
-    uid = "stompy"
-    urdf_path = f"{PACKAGE_ASSET_DIR}/robots/stompy/robot.urdf"
+    uid = "stompy_latest"
+    urdf_path = f"{get_model_dir()}/7DOF_NEWEST/robot_7dof_arm_merged_simplified.urdf"
     urdf_config = dict(
         _materials=dict(gripper=dict(static_friction=2.0, dynamic_friction=2.0, restitution=0.0)),
         link=dict(
@@ -116,7 +116,6 @@ class Stompy(BaseAgent):
                 fov=1.57,
                 near=0.01,
                 far=100,
-                entity_uid="link_head_1_head_1",  # mount cameras relative to existing link IDs as so
             )
         ]
 

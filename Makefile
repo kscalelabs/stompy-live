@@ -26,13 +26,17 @@ all:
 #          Build           #
 # ------------------------ #
 
-install:
+install: install-urdf
 	@pip install --verbose -e .
+	install-urdf
+	python -m mani_skill.utils.download_asset ReplicaCAD
+	python -m mani_skill.utils.download_asset AI2THOR
 .PHONY: install
 
 install-dev:
 	@pip install --verbose -e '.[dev]'
 
+# TO-DO: Replace with link to full stompy URDF when that exists.
 install-urdf:
 	curl -O https://media.kscale.dev/stompy/arm_latest_stl_urdf.tar.gz
 	tar -xvzf arm_latest_stl_urdf.tar.gz
