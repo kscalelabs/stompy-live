@@ -1,6 +1,7 @@
 """Code for building scenes from the ReplicaCAD dataset https://aihabitat.org/datasets/replica_cad/.
 
-This code is also heavily commented to serve as a tutorial for how to build custom scenes from scratch and/or port scenes over from other datasets/simulators
+This code is also heavily commented to serve as a tutorial for how to build custom scenes from scratch and/or port
+scenes over from other datasets/simulators
 """
 
 import json
@@ -30,16 +31,20 @@ IGNORE_FETCH_COLLISION_STRS = ["mat", "rug", "carpet"]
 
 @register_scene_builder("NewReplicaCAD")
 class ReplicaCADSceneBuilder(SceneBuilder):
-    builds_lighting = True  # we set this true because the ReplicaCAD dataset defines some lighting for us so we don't need the default option from ManiSkill
+    # we set this true because the ReplicaCAD dataset defines some lighting for us so we don't need the default option
+    # from ManiSkill
+    builds_lighting = True
 
     # build configs for RCAD are string file names
     build_configs: List[str] = None
 
     def __init__(self, env, robot_init_qpos_noise=0.02, include_staging_scenes=False) -> None:
         super().__init__(env, robot_init_qpos_noise=robot_init_qpos_noise)
-        # Scene datasets from any source generally have several configurations, each of which may involve changing object geometries, poses etc.
-        # You should store this configuration information in the self.build_configs list, which permits the code to sample from when
-        # simulating more than one scene or performing reconfiguration
+        # Scene datasets from any source generally have several configurations, each of which may involve changing
+        # object geometries, poses etc.
+        #
+        # You should store this configuration information in the self.build_configs list, which permits the code to
+        # sample from when simulating more than one scene or performing reconfiguration
 
         # for ReplicaCAD we have saved the list of all scene configuration files from the dataset to a local json file
         with open(osp.join(DATASET_CONFIG_DIR, "scene_configs.json")) as f:
@@ -94,21 +99,23 @@ class ReplicaCADSceneBuilder(SceneBuilder):
             ) as f:
                 build_config_json = json.load(f)
 
-            # The complex part of porting over scene datasets is that each scene dataset often has it's own format and there is no
-            # one size fits all solution to read that format and use it. The best way to port a scene dataset over is to look
-            # at the configuration files, get a sense of the pattern and find how they reference .glb model files and potentially
-            # decomposed convex meshes for physical simulation
+            # The complex part of porting over scene datasets is that each scene dataset often has it's own format and
+            # there is no one size fits all solution to read that format and use it. The best way to port a scene
+            # dataset over is to look at the configuration files, get a sense of the pattern and find how they reference
+            # .glb model files and potentially decomposed convex meshes for physical simulation
 
             # ReplicaCAD stores the background model here
             background_template_name = osp.basename(build_config_json["stage_instance"]["template_name"])
             bg_path = str(ASSET_DIR / f"scene_datasets/replica_cad_dataset/stages/{background_template_name}.glb")
             builder = self.scene.create_actor_builder()
-            # Note all ReplicaCAD assets are rotated by 90 degrees as they use a different xyz convention to SAPIEN/ManiSkill.
+            # Note all ReplicaCAD assets are rotated by 90 degrees as they use a different xyz convention to
+            # SAPIEN/ManiSkill.
             q = transforms3d.quaternions.axangle2quat(np.array([1, 0, 0]), theta=np.deg2rad(90))
             bg_pose = sapien.Pose(q=q)
 
-            # When creating objects that do not need to be moved ever, you must provide the pose of the object ahead of time
-            # and use builder.build_static. Objects such as the scene background (also called a stage) fits in this category
+            # When creating objects that do not need to be moved ever, you must provide the pose of the object ahead of
+            # time and use builder.build_static. Objects such as the scene background (also called a stage) fits in this
+            # category
             builder.add_visual_from_file(bg_path)
             builder.add_nonconvex_collision_from_file(bg_path)
             builder.initial_pose = bg_pose
@@ -118,8 +125,8 @@ class ReplicaCADSceneBuilder(SceneBuilder):
                 bgs[env_num] = bg._objs[i]
 
             # In scenes, there will always be dynamic objects, kinematic objects, and static objects.
-            # In the case of ReplicaCAD there are only dynamic and static objects. Since dynamic objects can be moved during simulation
-            # we need to keep track of the initial poses of each dynamic actor we create.
+            # In the case of ReplicaCAD there are only dynamic and static objects. Since dynamic objects can be moved
+            # during simulation we need to keep track of the initial poses of each dynamic actor we create.
             for obj_num, obj_meta in enumerate(build_config_json["object_instances"]):
                 # Again, for any dataset you will have to figure out how they reference object files
                 # Note that ASSET_DIR will always refer to the ~/.ms_data folder or whatever MS_ASSET_DIR is set to
@@ -136,16 +143,21 @@ class ReplicaCADSceneBuilder(SceneBuilder):
                 builder = self.scene.create_actor_builder()
                 pos = obj_meta["translation"]
                 rot = obj_meta["rotation"]
-                # left multiplying by the offset quaternion we used for the stage/scene background as all assets in ReplicaCAD are rotated by 90 degrees
+                # left multiplying by the offset quaternion we used for the stage/scene background as all assets in
+                # ReplicaCAD are rotated by 90 degrees
                 pose = sapien.Pose(q=q) * sapien.Pose(pos, rot)
 
                 actor_name = f'{obj_meta["template_name"]}-{obj_num}'
-                # Neatly for simulation, ReplicaCAD specifies if an object is meant to be simulated as dynamic (can be moved like pots) or static (must stay still, like kitchen counters)
+                # Neatly for simulation, ReplicaCAD specifies if an object is meant to be simulated as dynamic (can be
+                # moved like pots) or static (must stay still, like kitchen counters)
                 if obj_meta["motion_type"] == "DYNAMIC":
                     builder.add_visual_from_file(visual_file)
                     if "use_bounding_box_for_collision" in obj_cfg and obj_cfg["use_bounding_box_for_collision"]:
-                        # some dynamic objects do not have decomposed convex meshes and instead should use a simple bounding box for collision detection
-                        # in this case we use the add_convex_collision_from_file function of SAPIEN which just creates a convex collision based on the visual mesh
+                        # some dynamic objects do not have decomposed convex meshes and instead should use a simple
+                        # bounding box for collision detection
+                        #
+                        # in this case we use the add_convex_collision_from_file function of SAPIEN which just creates a
+                        # convex collision based on the visual mesh
                         builder.add_convex_collision_from_file(visual_file)
                     else:
                         builder.add_multiple_convex_collisions_from_file(collision_file)
@@ -158,8 +170,8 @@ class ReplicaCADSceneBuilder(SceneBuilder):
                         self.movable_objects[f"env-{env_num}_{actor_name}"] = actor
                 elif obj_meta["motion_type"] == "STATIC":
                     builder.add_visual_from_file(visual_file)
-                    # for static (and dynamic) objects you don't need to use pre convex decomposed meshes and instead can directly
-                    # add the non convex collision mesh based on the visual mesh
+                    # for static (and dynamic) objects you don't need to use pre convex decomposed meshes and instead
+                    # can directly add the non convex collision mesh based on the visual mesh
                     builder.add_nonconvex_collision_from_file(visual_file)
                     builder.initial_pose = pose
                     builder.set_scene_idxs(env_idx)
@@ -169,7 +181,8 @@ class ReplicaCADSceneBuilder(SceneBuilder):
                 for env_num in env_idx:
                     self.scene_objects[f"env-{env_num}_{actor_name}"] = actor
 
-                # Certain objects, such as mats, rugs, and carpets, are on the ground and should not collide with the Fetch base
+                # Certain objects, such as mats, rugs, and carpets, are on the ground and should not collide with the
+                # Fetch base
                 if any([x in actor_name for x in IGNORE_FETCH_COLLISION_STRS]):
                     self.disable_fetch_move_collisions(actor, disable_base_collisions=True)
 
@@ -210,8 +223,10 @@ class ReplicaCADSceneBuilder(SceneBuilder):
                 # It appears ReplicaCAD only specifies point light sources so we only use those here
                 if light_cfg["type"] == "point":
                     light_pos_fixed = (sapien.Pose(q=q) * sapien.Pose(p=light_cfg["position"])).p
-                    # In SAPIEN, one can set color to unbounded values, higher just means more intense. ReplicaCAD provides color and intensity separately so
-                    # we multiply it together here. We also take absolute value of intensity since some scene configs write negative intensities (which result in black holes)
+                    # In SAPIEN, one can set color to unbounded values, higher just means more intense. ReplicaCAD
+                    # provides color and intensity separately so we multiply it together here. We also take absolute
+                    # value of intensity since some scene configs
+                    # write negative intensities (which result in black holes)
                     self.scene.add_point_light(
                         light_pos_fixed,
                         color=np.array(light_cfg["color"]) * np.abs(light_cfg["intensity"]),
@@ -244,7 +259,8 @@ class ReplicaCADSceneBuilder(SceneBuilder):
 
             agent.robot.set_pose(sapien.Pose([-1, 0, 0.02]))
 
-            # For the purposes of physical simulation, we disable collisions between the Fetch robot and the scene background
+            # For the purposes of physical simulation, we disable collisions between the Fetch robot and the scene
+            # background
             self.disable_fetch_move_collisions(self.bg)
         elif self.env.robot_uids == "stompy_latest":
             agent: Stompy = self.env.agent
