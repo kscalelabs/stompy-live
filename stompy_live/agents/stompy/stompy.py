@@ -1,5 +1,7 @@
 """Defines class for the stompy agent."""
 
+from typing import Any, Dict
+
 import numpy as np
 import sapien
 from mani_skill.agents.base_agent import BaseAgent, Keyframe
@@ -81,7 +83,7 @@ class Stompy(BaseAgent):
     @property
     def _controller_configs(
         self,
-    ):
+    ) -> Dict[str, Any]:
         return dict(
             pd_joint_pos=dict(
                 body=PDJointPosControllerConfig(
