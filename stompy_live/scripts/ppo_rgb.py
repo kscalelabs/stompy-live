@@ -378,14 +378,14 @@ if __name__ == "__main__":
     place_rew = torch.zeros(args.num_envs, device=device)
     print("####")
     print(
-        f'''args.num_iterations={args.num_iterations}
+        f"""args.num_iterations={args.num_iterations}
         args.num_envs={args.num_envs}
-        args.num_eval_envs={args.num_eval_envs}'''
+        args.num_eval_envs={args.num_eval_envs}"""
     )
     print(
-        f'''args.minibatch_size={args.minibatch_size}
+        f"""args.minibatch_size={args.minibatch_size}
         args.batch_size={args.batch_size}
-        args.update_epochs={args.update_epochs}'''
+        args.update_epochs={args.update_epochs}"""
     )
     print("####")
     agent = Agent(envs, sample_obs=next_obs).to(device)

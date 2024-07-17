@@ -260,7 +260,7 @@ class ReplicaCADSceneBuilder(SceneBuilder):
     def disable_fetch_move_collisions(
         self,
         actor: Actor,
-        disable_base_collisions: bool=False,
+        disable_base_collisions: bool = False,
     ) -> None:
         actor.set_collision_group_bit(group=2, bit_idx=FETCH_WHEELS_COLLISION_BIT, bit=1)
         if disable_base_collisions:
