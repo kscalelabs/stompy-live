@@ -3,6 +3,12 @@
 import argparse
 import subprocess
 
+import gymnasium as gym
+import torch
+from mani_skill.utils.wrappers.flatten import FlattenActionSpaceWrapper
+
+from stompy_live.envs.stompy_env import SceneManipulationEnv  # noqa: F401
+
 parser = argparse.ArgumentParser(description="Client that simulates Stompy")
 parser.add_argument(
     "--streamkey",
@@ -11,12 +17,6 @@ parser.add_argument(
     help="Streamer key for streaming to Twitch. Passing in this argument will stream the output to Twitch.",
 )
 args = parser.parse_args()
-
-import gymnasium as gym
-import torch
-from mani_skill.utils.wrappers.flatten import FlattenActionSpaceWrapper
-
-from stompy_live.envs.stompy_env import SceneManipulationEnv  # noqa: F401
 
 # Load the model
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
