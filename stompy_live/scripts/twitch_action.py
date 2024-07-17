@@ -1,9 +1,13 @@
-from twitch.client import message_queue, init
+"""Placeholder script that serves as a template for receiving Twitch chat messages."""
+
+import queue
+import time
 from threading import Thread
-import time, queue
+
+from twitch.client import init, message_queue
 
 
-def main():
+def main() -> None:
     print("Starting Twitch IRC client")
 
     # Initializes Twitch IRC thread

@@ -1,158 +1,172 @@
-"""Code for the demo environment."""
+"""ManiSkill environment that Stompy is simulated in."""
 
-from typing import Any, Dict, Union
+from typing import Any
 
-import numpy as np
 import torch
 from mani_skill.agents.robots import Fetch, Panda
 from mani_skill.envs.sapien_env import BaseEnv
 from mani_skill.sensors.camera import CameraConfig
 from mani_skill.utils import sapien_utils
 from mani_skill.utils.registration import register_env
+from mani_skill.utils.scene_builder import SceneBuilder
+from mani_skill.utils.scene_builder.registration import REGISTERED_SCENE_BUILDERS
 from mani_skill.utils.structs.types import GPUMemoryConfig, SimConfig
+from sapien import Pose
 
 from stompy_live.agents.stompy.stompy import Stompy
+from stompy_live.utils.scene_builders.ai2thor import AI2THORBaseSceneBuilder  # noqa: F401
+from stompy_live.utils.scene_builders.replicacad import ReplicaCADSceneBuilder  # noqa: F401
 
 
-# register the environment by a unique ID and specify a max time limit. Now once this file is imported you can do gym.make("CustomEnv-v0")
-@register_env("StompyEnv")
-class StompyEnv(BaseEnv):
-    # here you can define a list of robots that this task is built to support and be solved by. This is so that
-    # users won't be permitted to use robots not predefined here. If SUPPORTED_ROBOTS is not defined then users can do anything
-    SUPPORTED_ROBOTS = [["stompy"], ["fetch"], ["panda"]]
-    # if you want to say you support multiple robots you can use SUPPORTED_ROBOTS = [["panda", "panda"], ["panda", "fetch"]] etc.
+@register_env("New-SceneManipulation-v1", max_episode_steps=10000)
+class SceneManipulationEnv(BaseEnv):
+    """A base environment for simulating manipulation tasks in more complex scenes.
 
-    # to help with programming, you can assert what type of agents are supported like below, and any shared properties of self.agent
-    # become available to typecheckers and auto-completion. E.g. Panda and Fetch both share a property called .tcp (tool center point).
-    agent: Union[Stompy, Fetch, Panda]
-    # if you want to do typing for multi-agent setups, use this below and specify what possible tuples of robots are permitted by typing
-    # this will then populate agent.agents (list of the instantiated agents) with the right typing
-    # agent: MultiAgent[Union[Tuple[Panda, Panda], Tuple[Panda, Panda, Panda]]]
+    Creating this base environment is only useful for explorations/visualization, there are no success/failure metrics
+    or rewards.
 
-    # in the __init__ function you can pick a default robot your task should use e.g. the panda robot by setting a default for robot_uids argument
-    # note that if robot_uids is a list of robot uids, then we treat it as a multi-agent setup and load each robot separately.
-    def __init__(self, *args, robot_uids=["stompy", "fetch", "panda"], robot_init_qpos_noise=0.02, **kwargs):
-        self.robot_init_qpos_noise = robot_init_qpos_noise
-        super().__init__(*args, robot_uids=robot_uids, **kwargs)
+    Args:
+        robot_uids: Which robot to place into the scene. Default is "fetch"
 
-    # Specify default simulation/gpu memory configurations. Note that tasks need to tune their GPU memory configurations accordingly
-    # in order to save memory while also running with no errors. In general you can start with low values and increase them
-    # depending on the messages that show up when you try to run more environments in parallel. Since this is a python property
-    # you can also check self.num_envs to dynamically set configurations as well
-    @property
-    def _default_sim_config(self):
-        return SimConfig(gpu_memory_cfg=GPUMemoryConfig(found_lost_pairs_capacity=2**25, max_rigid_patch_count=2**18))
+        fixed_scene:
+            When True, will never reconfigure the environment during resets unless you run env.reset(seed=seed,
+            options=dict(reconfigure=True)) and explicitly reconfigure. If False, will reconfigure every reset.
 
-    """
-    Reconfiguration Code
+        scene_builder_cls:
+            Scene builder class to build a scene with. Default is ReplicaCAD. Furthermore, any of the AI2THOR
+            SceneBuilders are supported in this environment.
 
-    below are all functions involved in reconfiguration during environment reset called in the same order. As a user
-    you can change these however you want for your desired task. These functions will only ever be called once in general. In CPU simulation,
-    for some tasks these may need to be called multiple times if you need to swap out object assets. In GPU simulation these will only ever be called once.
+        build_config_idxs (optional):
+            which build configs (static builds) to sample. Your scene_builder_cls may or may not require these.
+
+        init_config_idxs (optional):
+            which init configs (additional init options) to sample. Your scene_builder_cls may or may not require these.
     """
 
-    def _load_agent(self, options: dict):
-        # this code loads the agent into the current scene. You can usually ignore this function by deleting it or calling the inherited
-        # BaseEnv._load_agent function
-        super()._load_agent(options)
+    SUPPORTED_ROBOTS = ["panda", "fetch", "stompy_latest"]
+    agent: Panda | Fetch | Stompy
 
-    def _load_scene(self, options: dict):
-        # here you add various objects like actors and articulations. If your task was to push a ball, you may add a dynamic sphere object on the ground
-        pass
+    def __init__(
+        self,
+        *args: dict[Any],
+        robot_uids: str | list[str] = "stompy_latest",
+        scene_builder_cls: str | SceneBuilder = "NewReplicaCAD",
+        build_config_idxs: list[Any] | None = None,
+        init_config_idxs: list[Any] | None = None,
+        num_envs: int = 1,
+        reconfiguration_freq: int | None = None,
+        **kwargs: dict[Any],
+    ) -> None:
+        if isinstance(scene_builder_cls, str):
+            scene_builder_cls = REGISTERED_SCENE_BUILDERS[scene_builder_cls].scene_builder_cls
+        self.scene_builder: SceneBuilder = scene_builder_cls(self)
+        self.build_config_idxs = build_config_idxs
+        self.init_config_idxs = init_config_idxs
+        if reconfiguration_freq is None:
+            if num_envs == 1:
+                reconfiguration_freq = 1
+            else:
+                reconfiguration_freq = 0
+        super().__init__(
+            *args, robot_uids=robot_uids, reconfiguration_freq=reconfiguration_freq, num_envs=num_envs, **kwargs
+        )
 
     @property
-    def _default_sensor_configs(self):
-        # To customize the sensors that capture images/pointclouds for the environment observations,
-        # simply define a CameraConfig as done below for Camera sensors. You can add multiple sensors by returning a list
-        pose = sapien_utils.look_at(
-            eye=[0.3, 0, 0.6], target=[-0.1, 0, 0.1]
-        )  # sapien_utils.look_at is a utility to get the pose of a camera that looks at a target
+    def _default_sim_config(self) -> SimConfig:
+        return SimConfig(
+            spacing=50,
+            gpu_memory_cfg=GPUMemoryConfig(
+                found_lost_pairs_capacity=2**25,
+                max_rigid_patch_count=2**21,
+                max_rigid_contact_count=2**23,
+            ),
+        )
 
-        # to see what all the sensors capture in the environment for observations, run env.render_sensors() which returns an rgb array you can visualize
-        return [CameraConfig("base_camera", pose, 128, 128, np.pi / 2, 0.01, 100)]
+    def reset(self, seed: int | None = None, options: dict[str, Any] = None) -> tuple[dict, dict[str, bool]]:
+        self._set_episode_rng(seed)
+        if options is None:
+            options = dict(reconfigure=False)
+        if "reconfigure" in options and options["reconfigure"]:
+            self.build_config_idxs = options.pop("build_config_idxs", self.build_config_idxs)
+            self.init_config_idxs = options.pop("init_config_idxs", self.init_config_idxs)
+        return super().reset(seed, options)
 
-    @property
-    def _default_human_render_camera_configs(self):
-        # this is just like _sensor_configs, but for adding cameras used for rendering when you call env.render()
-        # when render_mode="rgb_array" or env.render_rgb_array()
-        # Another feature here is that if there is a camera called render_camera, this is the default view shown initially when a GUI is opened
-        pose = sapien_utils.look_at([0.6, 0.7, 0.6], [0.0, 0.0, 0.35])
-        return [CameraConfig("render_camera", pose, 512, 512, 1, 0.01, 100)]
-
-    def _setup_sensors(self, options: dict):
-        # default code here will setup all sensors. You can add additional code to change the sensors e.g.
-        # if you want to randomize camera positions
-        return super()._setup_sensors(options)
-
-    def _load_lighting(self, options: dict):
-        # default code here will setup all lighting. You can add additional code to change the lighting e.g.
-        # if you want to randomize lighting in the scene
+    def _load_lighting(self, options: dict) -> None:
+        if self.scene_builder.builds_lighting:
+            return
         return super()._load_lighting(options)
 
-    """
-    Episode Initialization Code
+    def _load_scene(self, options: dict) -> None:
+        if self.scene_builder.build_configs is not None:
+            self.scene_builder.build(
+                self.build_config_idxs
+                if self.build_config_idxs is not None
+                else self.scene_builder.sample_build_config_idxs()
+            )
+        else:
+            self.scene_builder.build()
 
-    below are all functions involved in episode initialization during environment reset called in the same order. As a user
-    you can change these however you want for your desired task. Note that these functions are given a env_idx variable.
+    def _initialize_episode(self, env_idx: torch.Tensor, options: dict) -> None:
+        with torch.device(self.device):
+            if self.scene_builder.init_configs is not None:
+                self.scene_builder.initialize(
+                    env_idx,
+                    (
+                        self.init_config_idxs
+                        if self.init_config_idxs is not None
+                        else self.scene_builder.sample_init_config_idxs()
+                    ),
+                )
+            else:
+                self.scene_builder.initialize(env_idx)
 
-    `env_idx` is a torch Tensor representing the indices of the parallel environments that are being initialized/reset. This is used
-    to support partial resets where some parallel envs might be reset while others are still running (useful for faster RL and evaluation).
-    Generally you only need to really use it to determine batch sizes via len(env_idx). ManiSkill helps handle internally a lot of masking
-    you might normally need to do when working with GPU simulation. For specific details check out the push_cube.py code
-    """
-
-    def _initialize_episode(self, env_idx: torch.Tensor, options: dict):
-        pass
-
-    """
-    Modifying observations, goal parameterization, and success conditions for your task
-
-    the code below all impact some part of `self.step` function
-    """
-
-    def evaluate(self, obs: Any = None):
-        # this function is used primarily to determine success and failure of a task, both of which are optional. If a dictionary is returned
-        # containing "success": bool array indicating if the env is in success state or not, that is used as the terminated variable returned by
-        # self.step. Likewise if it contains "fail": bool array indicating the opposite (failure state or not) the same occurs. If both are given
-        # then a logical OR is taken so terminated = success | fail. If neither are given, terminated is always all False.
-        #
-        # You may also include additional keys which will populate the info object returned by self.step and that will be given to
-        # `_get_obs_extra` and `_compute_dense_reward`. Note that as everything is batched, you must return a batched array of
-        # `self.num_envs` booleans (or 0/1 values) for success an dfail as done in the example below
-        return {
-            "success": torch.zeros(self.num_envs, device=self.device, dtype=bool),
-            "fail": torch.zeros(self.num_envs, device=self.device, dtype=bool),
-        }
-
-    def _get_obs_extra(self, info: Dict):
-        # should return an dict of additional observation data for your tasks
-        # this will be included as part of the observation in the "extra" key when obs_mode="state_dict" or any of the visual obs_modes
-        # and included as part of a flattened observation when obs_mode="state". Moreover, you have access to the info object
-        # which is generated by the `evaluate` function above
+    def evaluate(self) -> dict:
         return dict()
 
-    def compute_dense_reward(self, obs: Any, action: torch.Tensor, info: Dict):
-        # you can optionally provide a dense reward function by returning a scalar value here. This is used when reward_mode="dense"
-        # note that as everything is batched, you must return a batch of of self.num_envs rewards as done in the example below.
-        # Moreover, you have access to the info object which is generated by the `evaluate` function above
-        return torch.zeros(self.num_envs, device=self.device)
+    def compute_dense_reward(self, obs: tuple[dict, dict[str, bool]], action: torch.Tensor, info: dict) -> int:
+        return 0
 
-    def compute_normalized_dense_reward(self, obs: Any, action: torch.Tensor, info: Dict):
-        # this should be equal to compute_dense_reward / max possible reward
-        max_reward = 1.0
-        return self.compute_dense_reward(obs=obs, action=action, info=info) / max_reward
+    def compute_normalized_dense_reward(
+        self,
+        obs: tuple[dict, dict[str, bool]],
+        action: torch.Tensor,
+        info: dict,
+    ) -> int:
+        return self.compute_dense_reward(obs=obs, action=action, info=info) / 1
 
-    def get_state_dict(self):
-        # this function is important in order to allow accurate replaying of trajectories. Make sure to specify any
-        # non simulation state related data such as a random 3D goal position you generated
-        # alternatively you can skip this part if the environment's rewards, observations, eval etc. are dependent on simulation data only
-        # e.g. self.your_custom_actor.pose.p will always give you your actor's 3D position
-        state = super().get_state_dict()
-        # state["goal_pos"] = add_your_non_sim_state_data_here
-        return state
+    @property
+    def _default_sensor_configs(self) -> CameraConfig | list[CameraConfig]:
+        if self.robot_uids == "fetch" and self.scene_builder == "NewReplicaCAD":
+            pose = Pose([3.07349, -7.32307, 2.44359], [0.553155, -0.0498532, 0.033322, 0.830917])
+        elif self.scene_builder == "NewReplicaCAD":
+            pose = sapien_utils.look_at([2.5, -2.5, 3], [0.0, 0.0, 0])
+        else:
+            pose = Pose([0.307874, -2.75969, 2.44259], [0.645961, -0.29201, 0.294314, 0.640971])
 
-    def set_state_dict(self, state):
-        # this function complements get_state and sets any non simulation state related data correctly so the environment behaves
-        # the exact same in terms of output rewards, observations, success etc. should you reset state to a given state and take the same actions
-        self.goal_pos = state["goal_pos"]
-        super().set_state_dict(state)
+        return [CameraConfig("base_camera", pose, 512, 512, 1, 0.01, 100)]
+
+    @property
+    def _default_human_render_camera_configs(self) -> CameraConfig | list[CameraConfig]:
+        if self.robot_uids == "fetch":
+            room_camera_pose = Pose([3.07349, -7.32307, 2.44359], [0.553155, -0.0498532, 0.033322, 0.830917])
+            room_camera_config = CameraConfig(
+                "render_camera",
+                room_camera_pose,
+                512,
+                512,
+                1,
+                0.01,
+                100,
+            )
+            return [room_camera_config]
+
+        if self.robot_uids == "panda":
+            pose = sapien_utils.look_at([0.4, 0.4, 0.8], [0.0, 0.0, 0.4])
+        elif self.robot_uids == "stompy_latest":
+            if self.scene_builder == "NewReplicaCAD":
+                pose = sapien_utils.look_at([2.5, -2.5, 3], [0.0, 0.0, 0])
+            else:
+                pose = Pose([0.307874, -2.75969, 2.44259], [0.645961, -0.29201, 0.294314, 0.640971])
+        else:
+            pose = sapien_utils.look_at([0, 10, -3], [0, 0, 0])
+        return CameraConfig("render_camera", pose, 512, 512, 1, 0.01, 100)

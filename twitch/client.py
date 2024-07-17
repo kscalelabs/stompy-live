@@ -1,7 +1,11 @@
+"""Helper module for connecting to Twitch."""
+
 import os
-import socket
 import queue
-import re, time
+import re
+import socket
+import sys
+import time
 
 server = "irc.chat.twitch.tv"
 port = 6667
@@ -12,7 +16,7 @@ channel = "#kscaletest"
 message_queue = queue.Queue()
 
 
-def parse_message(raw_message):
+def parse_message(raw_message: str) -> str | None:
     # This regex pattern matches the message part of a PRIVMSG
     pattern = r"^:.+!.+@.+\.tmi\.twitch\.tv PRIVMSG #\w+ :(.+)$"
     match = re.match(pattern, raw_message)
@@ -21,25 +25,25 @@ def parse_message(raw_message):
     return None
 
 
-def init():
+def init() -> None:
     sock = socket.socket()
 
     sock.connect((server, port))
-    sock.send(f"PASS {token}\n".encode("utf-8"))
-    sock.send(f"NICK {nickname}\n".encode("utf-8"))
-    sock.send(f"JOIN {channel}\n".encode("utf-8"))
+    sock.send(f"PASS {token}\n".encode())
+    sock.send(f"NICK {nickname}\n".encode())
+    sock.send(f"JOIN {channel}\n".encode())
 
     last_ping = time.time()
 
     try:
         while True:
             if time.time() - last_ping > 240:
-                sock.send("PING\n".encode("utf-8"))
+                sock.send(b"PING\n")
                 last_ping = time.time()
             resp = sock.recv(2048).decode("utf-8")
 
             if resp.startswith("PING"):
-                sock.send("PONG\n".encode("utf-8"))
+                sock.send(b"PONG\n")
 
             elif len(resp) > 0:
                 message = parse_message(resp)
@@ -48,4 +52,4 @@ def init():
 
     except KeyboardInterrupt:
         sock.close()
-        exit()
+        sys.exit()

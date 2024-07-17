@@ -11,7 +11,7 @@ from transforms3d.euler import euler2quat
 class StompyTableSceneBuilder(TableSceneBuilder):
     def initialize(self, env_idx: Tensor) -> None:
         # table_height = 0.9196429
-        b = len(env_idx)
+        len(env_idx)
         pose = sapien.Pose(p=[-0.12, 0, -self.table_height], q=euler2quat(0, 0, np.pi / 2))
         self.table.set_pose(pose)
 

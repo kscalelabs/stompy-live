@@ -2,7 +2,6 @@
 
 from mani_skill.envs.scene import ManiSkillScene
 from mani_skill.utils.building.actor_builder import ActorBuilder
-from mani_skill.utils.building.actors.common import *
 
 from stompy_live.utils.scene_builders.ycb_builder import get_ycb_builder
 
@@ -12,15 +11,16 @@ def get_actor_builder(
 ) -> ActorBuilder:
     """Builds an actor or returns an actor builder given an ID specifying which dataset/source and then the actor ID.
 
-    Currently these IDs are hardcoded for a few datasets. The new Shapedex platform for hosting and managing all assets will be
-    integrated in the future
+    Currently these IDs are hardcoded for a few datasets. The new Shapedex platform for hosting and managing all assets
+    will be integrated in the future
 
     Args:
         scene: The ManiSkillScene. If building a custom task this is generally just self.scene
-        id (str): The unique ID identifying the dataset and the ID of the actor in that dataset to build. The format should be
-            "<dataset_id>:<actor_id_in_dataset>"
+        id (str): The unique ID identifying the dataset and the ID of the actor in that dataset to build. The format
+            should be "<dataset_id>:<actor_id_in_dataset>"
         add_collision (bool): Whether to include the collision shapes/meshes
         add_visual (bool): Whether to include visual shapes/meshes
+        scale (float): The input scale.
     """
     splits = id.split(":")
     dataset_source = splits[0]

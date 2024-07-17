@@ -1,0 +1,8 @@
+[Unit]
+Description = stompy live
+
+[Service]
+Type=simple
+User=ec2-user
+WorkingDirectory=/home/ec2-user/stompy-live
+ExecStart=/usr/bin/sh /home/ec2-user/stompy-live/run.sh
