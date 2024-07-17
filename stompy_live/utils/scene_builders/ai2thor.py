@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
 import numpy as np
-import sapien
 import sapien.core as sapien
 import torch
 import transforms3d
@@ -16,6 +15,7 @@ from mani_skill.agents.robots.fetch import (
     FETCH_WHEELS_COLLISION_BIT,
     Fetch,
 )
+from mani_skill.envs.sapien_env import BaseEnv
 from mani_skill.utils.scene_builder import SceneBuilder
 from mani_skill.utils.scene_builder.ai2thor.constants import (
     SCENE_SOURCE_TO_DATASET,
@@ -66,7 +66,7 @@ class AI2THORBaseSceneBuilder(SceneBuilder):
 
     scene_dataset: str = "iTHOR"
 
-    def __init__(self, env, robot_init_qpos_noise=0.02) -> None:
+    def __init__(self, env: BaseEnv, robot_init_qpos_noise: float = 0.02) -> None:
         super().__init__(env, robot_init_qpos_noise=robot_init_qpos_noise)
         global OBJECT_SEMANTIC_ID_MAPPING, SEMANTIC_ID_OBJECT_MAPPING, MOVEABLE_OBJECT_IDS
         (
@@ -87,7 +87,7 @@ class AI2THORBaseSceneBuilder(SceneBuilder):
         self._navigable_positions = [None] * len(self.build_configs)
         self.build_config_idxs: List[int] = None
 
-    def _should_be_static(self, template_name: str):
+    def _should_be_static(self, template_name: str) -> bool:
         object_config_json = (
             Path(ASSET_DIR)
             / "scene_datasets/ai2thor/ai2thorhab-uncompressed/configs"
@@ -103,7 +103,7 @@ class AI2THORBaseSceneBuilder(SceneBuilder):
     def build(
         self,
         build_config_idxs: Union[int, List[int]],
-        convex_decomposition="none",
+        convex_decomposition: str = "none",
     ) -> None:
         # build_config_idxs is a list of integers, where the ith value is the scene idx for the ith parallel env
         if isinstance(build_config_idxs, int):
@@ -232,7 +232,7 @@ class AI2THORBaseSceneBuilder(SceneBuilder):
             shared_name="scene_background",
         )
 
-    def initialize(self, env_idx) -> None:
+    def initialize(self, env_idx: torch.Tensor) -> None:
         if self.env.robot_uids == "fetch":
             agent: Fetch = self.env.agent
             rest_keyframe = agent.keyframes["rest"]
@@ -262,7 +262,7 @@ class AI2THORBaseSceneBuilder(SceneBuilder):
     def disable_fetch_move_collisions(
         self,
         actor: Actor,
-        disable_base_collisions=False,
+        disable_base_collisions: bool = False,
     ) -> None:
         actor.set_collision_group_bit(group=2, bit_idx=FETCH_WHEELS_COLLISION_BIT, bit=1)
         if disable_base_collisions:
