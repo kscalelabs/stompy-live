@@ -1,3 +1,5 @@
+"""Placeholder script that serves as a template for receiving Twitch chat messages."""
+
 import queue
 import time
 from threading import Thread
