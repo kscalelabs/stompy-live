@@ -1,4 +1,6 @@
-from typing import Any, Dict, Union
+"""ManiSkill environment that Stompy is simulated in."""
+
+from typing import Any
 
 import torch
 from mani_skill.agents.robots import Fetch, Panda
@@ -18,8 +20,10 @@ from stompy_live.utils.scene_builders.replicacad import ReplicaCADSceneBuilder  
 
 @register_env("New-SceneManipulation-v1", max_episode_steps=10000)
 class SceneManipulationEnv(BaseEnv):
-    """A base environment for simulating manipulation tasks in more complex scenes. Creating this base environment is
-    only useful for explorations/visualization, there are no success/failure metrics or rewards.
+    """A base environment for simulating manipulation tasks in more complex scenes.
+
+    Creating this base environment is only useful for explorations/visualization, there are no success/failure metrics
+    or rewards.
 
     Args:
         robot_uids: Which robot to place into the scene. Default is "fetch"
@@ -40,18 +44,18 @@ class SceneManipulationEnv(BaseEnv):
     """
 
     SUPPORTED_ROBOTS = ["panda", "fetch", "stompy_latest"]
-    agent: Union[Panda, Fetch, Stompy]
+    agent: Panda | Fetch | Stompy
 
     def __init__(
         self,
-        *args,
-        robot_uids="stompy_latest",
-        scene_builder_cls: Union[str, SceneBuilder] = "NewReplicaCAD",
-        build_config_idxs=None,
-        init_config_idxs=None,
-        num_envs=1,
-        reconfiguration_freq=None,
-        **kwargs,
+        *args: dict[Any],
+        robot_uids: str | list[str] = "stompy_latest",
+        scene_builder_cls: str | SceneBuilder = "NewReplicaCAD",
+        build_config_idxs: list[Any] | None = None,
+        init_config_idxs: list[Any] | None = None,
+        num_envs: int = 1,
+        reconfiguration_freq: int | None = None,
+        **kwargs: dict[Any],
     ) -> None:
         if isinstance(scene_builder_cls, str):
             scene_builder_cls = REGISTERED_SCENE_BUILDERS[scene_builder_cls].scene_builder_cls
@@ -68,7 +72,7 @@ class SceneManipulationEnv(BaseEnv):
         )
 
     @property
-    def _default_sim_config(self):
+    def _default_sim_config(self) -> SimConfig:
         return SimConfig(
             spacing=50,
             gpu_memory_cfg=GPUMemoryConfig(
@@ -78,7 +82,7 @@ class SceneManipulationEnv(BaseEnv):
             ),
         )
 
-    def reset(self, seed=None, options=None):
+    def reset(self, seed: int | None = None, options: dict[str, Any] = None) -> tuple[dict, dict[str, bool]]:
         self._set_episode_rng(seed)
         if options is None:
             options = dict(reconfigure=False)
@@ -87,7 +91,7 @@ class SceneManipulationEnv(BaseEnv):
             self.init_config_idxs = options.pop("init_config_idxs", self.init_config_idxs)
         return super().reset(seed, options)
 
-    def _load_lighting(self, options: dict):
+    def _load_lighting(self, options: dict) -> None:
         if self.scene_builder.builds_lighting:
             return
         return super()._load_lighting(options)
@@ -119,14 +123,19 @@ class SceneManipulationEnv(BaseEnv):
     def evaluate(self) -> dict:
         return dict()
 
-    def compute_dense_reward(self, obs: Any, action: torch.Tensor, info: Dict) -> int:
+    def compute_dense_reward(self, obs: tuple[dict, dict[str, bool]], action: torch.Tensor, info: dict) -> int:
         return 0
 
-    def compute_normalized_dense_reward(self, obs: Any, action: torch.Tensor, info: Dict):
+    def compute_normalized_dense_reward(
+        self,
+        obs: tuple[dict, dict[str, bool]],
+        action: torch.Tensor,
+        info: dict,
+    ) -> int:
         return self.compute_dense_reward(obs=obs, action=action, info=info) / 1
 
     @property
-    def _default_sensor_configs(self):
+    def _default_sensor_configs(self) -> CameraConfig | list[CameraConfig]:
         if self.robot_uids == "fetch" and self.scene_builder == "NewReplicaCAD":
             pose = Pose([3.07349, -7.32307, 2.44359], [0.553155, -0.0498532, 0.033322, 0.830917])
         elif self.scene_builder == "NewReplicaCAD":
@@ -137,7 +146,7 @@ class SceneManipulationEnv(BaseEnv):
         return [CameraConfig("base_camera", pose, 512, 512, 1, 0.01, 100)]
 
     @property
-    def _default_human_render_camera_configs(self):
+    def _default_human_render_camera_configs(self) -> CameraConfig | list[CameraConfig]:
         if self.robot_uids == "fetch":
             room_camera_pose = Pose([3.07349, -7.32307, 2.44359], [0.553155, -0.0498532, 0.033322, 0.830917])
             room_camera_config = CameraConfig(
