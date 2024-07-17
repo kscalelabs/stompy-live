@@ -56,26 +56,26 @@ class SceneBuilder:
 
     def build(self, build_config_idxs: List[int] = None) -> NoReturn:
         """Should create actor/articulation builders and only build objects into the scene without initializing pose,
-        qpos, velocities etc."""
-
+        qpos, velocities etc.
+        """
         raise NotImplementedError()
 
     def initialize(self, env_idx: torch.Tensor, init_config_idxs: List[int] = None) -> NoReturn:
         """Should initialize the scene, which can include e.g. setting the pose of all objects, changing the qpos/pose
-        of articulations/robots etc."""
-
+        of articulations/robots etc.
+        """
         raise NotImplementedError()
 
     def sample_build_config_idxs(self) -> List[int]:
         """Sample idxs of build configs for easy scene randomization. Should be changed to fit shape of
-        self.build_configs."""
-
+        self.build_configs.
+        """
         return torch.randint(low=0, high=len(self.build_configs), size=(self.env.num_envs,)).tolist()
 
     def sample_init_config_idxs(self) -> List[int]:
         """Sample idxs of init configs for easy scene randomization. Should be changed to fit shape of
-        self.init_configs."""
-
+        self.init_configs.
+        """
         return torch.randint(low=0, high=len(self.init_configs), size=(self.env.num_envs,)).tolist()
 
     @cached_property
