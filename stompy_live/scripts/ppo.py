@@ -286,10 +286,14 @@ if __name__ == "__main__":
     place_rew = torch.zeros(args.num_envs, device=device)
     print("####")
     print(
-        f"args.num_iterations={args.num_iterations} args.num_envs={args.num_envs} args.num_eval_envs={args.num_eval_envs}"
+        f'''args.num_iterations={args.num_iterations}
+            args.num_envs={args.num_envs}
+            args.num_eval_envs={args.num_eval_envs}'''
     )
     print(
-        f"args.minibatch_size={args.minibatch_size} args.batch_size={args.batch_size} args.update_epochs={args.update_epochs}"
+        f'''args.minibatch_size={args.minibatch_size}
+            args.batch_size={args.batch_size}
+            args.update_epochs={args.update_epochs}'''
     )
     print("####")
     action_space_low, action_space_high = (
@@ -416,9 +420,9 @@ if __name__ == "__main__":
                 if args.finite_horizon_gae:
                     """
                     See GAE paper equation(16) line 1, we will compute the GAE based on this line only
-                    1             *(  -V(s_t)  + r_t                                                               + gamma * V(s_{t+1})   )
-                    lambda        *(  -V(s_t)  + r_t + gamma * r_{t+1}                                             + gamma^2 * V(s_{t+2}) )
-                    lambda^2      *(  -V(s_t)  + r_t + gamma * r_{t+1} + gamma^2 * r_{t+2}                         + ...                  )
+                    1             *(  -V(s_t)  + r_t + gamma * V(s_{t+1})   )
+                    lambda        *(  -V(s_t)  + r_t + gamma * r_{t+1} + gamma^2 * V(s_{t+2}) )
+                    lambda^2      *(  -V(s_t)  + r_t + gamma * r_{t+1} + gamma^2 * r_{t+2} + ... )
                     lambda^3      *(  -V(s_t)  + r_t + gamma * r_{t+1} + gamma^2 * r_{t+2} + gamma^3 * r_{t+3}
                     We then normalize it by the sum of the lambda^i (instead of 1-lambda)
                     """
