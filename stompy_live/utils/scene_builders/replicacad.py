@@ -7,7 +7,6 @@ scenes over from other datasets/simulators
 import json
 import os.path as osp
 from pathlib import Path
-from typing import Dict, List, Tuple, Union
 
 import numpy as np
 import sapien
@@ -37,7 +36,7 @@ class ReplicaCADSceneBuilder(SceneBuilder):
     builds_lighting = True
 
     # build configs for RCAD are string file names
-    build_configs: List[str] = None
+    build_configs: list[str] = None
 
     def __init__(self, env: BaseEnv, robot_init_qpos_noise: float = 0.02, include_staging_scenes: bool = False) -> None:
         super().__init__(env, robot_init_qpos_noise=robot_init_qpos_noise)
@@ -57,9 +56,9 @@ class ReplicaCADSceneBuilder(SceneBuilder):
         # cache navigable positions from files
         # assumes navigable position files saved
         self._navigable_positions = [None] * len(self.build_configs)
-        self.build_config_idxs: List[int] = None
+        self.build_config_idxs: list[int] = None
 
-    def build(self, build_config_idxs: Union[int, List[int]]) -> None:
+    def build(self, build_config_idxs: int | list[int]) -> None:
         # build_config_idxs is a list of integers, where the ith value is the scene idx for the ith parallel env
         if isinstance(build_config_idxs, int):
             build_config_idxs = [build_config_idxs] * self.env.num_envs
@@ -68,10 +67,10 @@ class ReplicaCADSceneBuilder(SceneBuilder):
 
         # Keep track of movable and static objects, build_config_idxs for envs, and poses
         self.build_config_idxs = build_config_idxs
-        self.scene_objects: Dict[str, Actor] = dict()
-        self.movable_objects: Dict[str, Actor] = dict()
-        self.articulations: Dict[str, Articulation] = dict()
-        self._default_object_poses: List[Tuple[Actor, sapien.Pose]] = []
+        self.scene_objects: dict[str, Actor] = dict()
+        self.movable_objects: dict[str, Actor] = dict()
+        self.articulations: dict[str, Articulation] = dict()
+        self._default_object_poses: list[tuple[Actor, sapien.Pose]] = []
 
         # keep track of background objects separately as we need to disable mobile robot collisions
         # note that we will create a merged actor using these objects to represent the bg
@@ -284,5 +283,5 @@ class ReplicaCADSceneBuilder(SceneBuilder):
             actor.set_collision_group_bit(group=2, bit_idx=FETCH_BASE_COLLISION_BIT, bit=1)
 
     @property
-    def navigable_positions(self) -> List[np.ndarray]:
+    def navigable_positions(self) -> list[np.ndarray]:
         return [self._navigable_positions[bci] for bci in self.build_config_idxs]

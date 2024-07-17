@@ -1,6 +1,6 @@
 """Custom YCB Builder for scaling actors."""
 
-from typing import Any, Dict
+from typing import Any
 
 from mani_skill import ASSET_DIR
 from mani_skill.envs.scene import ManiSkillScene
@@ -48,7 +48,7 @@ def get_ycb_builder(
     return builder
 
 
-def model_db() -> Dict[str, Any]:
+def model_db() -> dict[str, Any]:
     if "YCB" not in YCB_DATASET:
         _load_ycb_dataset()
     return YCB_DATASET["model_data"]
