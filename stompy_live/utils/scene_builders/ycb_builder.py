@@ -1,7 +1,10 @@
 """Custom YCB Builder for scaling actors."""
 
+from typing import Any, Dict
+
 from mani_skill import ASSET_DIR
 from mani_skill.envs.scene import ManiSkillScene
+from mani_skill.utils.building.actor_builder import ActorBuilder
 from mani_skill.utils.io_utils import load_json
 
 YCB_DATASET = dict()
@@ -16,8 +19,7 @@ def _load_ycb_dataset() -> None:
 
 def get_ycb_builder(
     scene: ManiSkillScene, id: str, add_collision: bool = True, add_visual: bool = True, input_scale: float = 1.0
-):
-    global YCB_DATASET
+) -> ActorBuilder:
     if "YCB" not in YCB_DATASET:
         _load_ycb_dataset()
     model_db = YCB_DATASET["model_data"]
@@ -46,7 +48,7 @@ def get_ycb_builder(
     return builder
 
 
-def model_db():
+def model_db() -> Dict[str, Any]:
     if "YCB" not in YCB_DATASET:
         _load_ycb_dataset()
     return YCB_DATASET["model_data"]
