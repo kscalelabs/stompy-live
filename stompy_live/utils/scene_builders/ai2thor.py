@@ -140,7 +140,8 @@ class AI2THORBaseSceneBuilder(SceneBuilder):
 
             bg_q = transforms3d.quaternions.axangle2quat(np.array([1, 0, 0]), theta=np.deg2rad(90))
             if self.scene_dataset == "ProcTHOR":
-                # for some reason the scene needs to rotate around y-axis by 90 degrees for ProcTHOR scenes from hssd dataset
+                # for some reason the scene needs to rotate around y-axis by 90
+                # degrees for ProcTHOR scenes from hssd dataset
                 bg_q = transforms3d.quaternions.qmult(
                     bg_q,
                     transforms3d.quaternions.axangle2quat(np.array([0, -1, 0]), theta=np.deg2rad(90)),
@@ -243,7 +244,8 @@ class AI2THORBaseSceneBuilder(SceneBuilder):
                 )
             )
 
-            # For the purposes of physical simulation, we disable collisions between the Fetch robot and the scene background
+            # For the purposes of physical simulation, we disable collisions
+            # between the Fetch robot and the scene background
             self.disable_fetch_move_collisions(self.bg)
         elif self.env.robot_uids == "stompy_latest":
             agent: Stompy = self.env.agent
