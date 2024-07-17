@@ -10,14 +10,17 @@ from stompy_live.utils.scene_builders.ycb_builder import get_ycb_builder
 def get_actor_builder(
     scene: ManiSkillScene, id: str, add_collision: bool = True, add_visual: bool = True, scale: float = 1.0
 ) -> ActorBuilder:
-    """Builds an actor or returns an actor builder given an ID specifying which dataset/source and then the actor ID.
+    """Builds an actor or returns an actor builder given an ID specifying which
+    dataset/source and then the actor ID.
 
-    Currently these IDs are hardcoded for a few datasets. The new Shapedex platform for hosting and managing all assets will be
-    integrated in the future
+    Currently these IDs are hardcoded for a few datasets. The new Shapedex
+    platform for hosting and managing all assets will be integrated in the
+    future
 
     Args:
         scene: The ManiSkillScene. If building a custom task this is generally just self.scene
-        id (str): The unique ID identifying the dataset and the ID of the actor in that dataset to build. The format should be
+        id (str): The unique ID identifying the dataset and the ID of the actor
+            in that dataset to build. The format should be
             "<dataset_id>:<actor_id_in_dataset>"
         add_collision (bool): Whether to include the collision shapes/meshes
         add_visual (bool): Whether to include visual shapes/meshes
