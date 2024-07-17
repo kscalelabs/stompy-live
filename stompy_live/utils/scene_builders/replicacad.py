@@ -19,6 +19,7 @@ from mani_skill.agents.robots.fetch import (
     FETCH_WHEELS_COLLISION_BIT,
     Fetch,
 )
+from mani_skill.envs.sapien_env import BaseEnv
 from mani_skill.utils.scene_builder import SceneBuilder
 from mani_skill.utils.scene_builder.registration import register_scene_builder
 from mani_skill.utils.scene_builder.replicacad.scene_builder import DATASET_CONFIG_DIR
@@ -38,7 +39,7 @@ class ReplicaCADSceneBuilder(SceneBuilder):
     # build configs for RCAD are string file names
     build_configs: List[str] = None
 
-    def __init__(self, env, robot_init_qpos_noise=0.02, include_staging_scenes=False) -> None:
+    def __init__(self, env: BaseEnv, robot_init_qpos_noise: float = 0.02, include_staging_scenes: bool = False) -> None:
         super().__init__(env, robot_init_qpos_noise=robot_init_qpos_noise)
         # Scene datasets from any source generally have several configurations, each of which may involve changing
         # object geometries, poses etc.
